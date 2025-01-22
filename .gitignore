@@ -1,0 +1,19 @@
+# Arquivos de ambiente
+venv/
+.env
+*.pyc
+__pycache__/
+
+# Banco de dados SQLite
+db.sqlite3
+
+# Arquivos estáticos e de mídia (caso gerados automaticamente)
+staticfiles/
+media/
+
+# Configurações do VSCode e IDEs
+.vscode/
+.idea/
+
+# Logs e arquivos temporários
+*.log

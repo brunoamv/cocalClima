@@ -1,0 +1,90 @@
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+
+
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+
+<!-- Button to trigger payment modal -->
+<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#  ">SHOW</button>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Complete Payment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <button class="btn btn-success" id="payButton">Pay Now</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- YouTube Modal -->
+<div class="modal fade" id="youtubeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">YouTube Streaming</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <iframe id="youtubeEmbed" src="" width="100%" height="315" frameborder="0" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+  document.getElementById('payButton').addEventListener('click', function () {
+    // Simulate payment confirmation
+    fetch('/create-payment/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}',
+      },
+      body: JSON.stringify({}),
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'approved') {
+        // Payment successful, show YouTube modal
+        document.getElementById('youtubeEmbed').src = "{{ youtube_url }}";
+        new bootstrap.Modal(document.getElementById('youtubeModal')).show();
+      } else {
+        alert('Payment failed. Please try again.');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('An error occurred. Please try again.');
+    });
+  });
+
+const mp = new MercadoPago('your_public_key');
+mp.createCardToken({
+    cardNumber: '5031755734530604',  // Test card number
+    expirationMonth: '11',
+    expirationYear: '2025',
+    securityCode: '123',
+    cardholder: {
+        name: 'APRO',  // Test cardholder name
+        identification: {
+            type: 'CPF',
+            number: '12345678909'
+        }
+    }
+}).then(function(response) {
+    console.log(response.id); // Use this token in your payment_data
+}).catch(function(error) {
+    console.error(error);
+});
+
+
+
+</script>
