@@ -1,5 +1,4 @@
-Django~=3.2.10
-django
+Django
 djangorestframework
 mercadopago
 requests
