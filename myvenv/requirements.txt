@@ -1,1 +1,8 @@
 Django~=3.2.10
+django
+djangorestframework
+mercadopago
+requests
+boto3
+gunicorn
+psycopg2-binary
