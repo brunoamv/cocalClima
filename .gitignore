@@ -1,4 +1,5 @@
 # Arquivos de ambiente
+myvenv/
 venv/
 .env
 *.pyc
