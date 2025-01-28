@@ -5,7 +5,10 @@ from django.core.cache import cache
 from django.shortcuts import render, redirect
 
 #MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-5215197145934497-010910-a8f4c879eb5cfbe282fc5b72ef91ddf3-234559853"
-MERCADO_PAGO_ACCESS_TOKEN = "TEST-5215197145934497-010910-a25eee2c27f63d4fd1b7ed2601c28129-234559853"
+
+MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6572778228467438-012815-7995636b4be0f51ec60422f0069b396a-2210813103"
+
+
 
 def home(request):
     return render(request, "index.html")
