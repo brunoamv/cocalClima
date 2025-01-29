@@ -18,3 +18,5 @@ media/
 
 # Logs e arquivos temporários
 *.log
+
+gunicorn.sock
