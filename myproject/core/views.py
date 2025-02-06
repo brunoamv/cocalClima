@@ -30,7 +30,7 @@ def create_payment(request):
         },
         "back_urls": {
            # "success": "http://127.0.0.1:8000/payment-success/", ##DEV
-            "success": "http://13.58.251.9:8000/payment-success/", ## PROD
+            "success": "http://177.47.221.44:8000/payment-success/", ## PROD
            # "failure": "http://13.58.251.9:8000/",
         },
         "auto_return": "approved"
