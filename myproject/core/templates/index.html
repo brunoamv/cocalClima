@@ -3,72 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Streaming Payment</title>
+    <title>ClimaCocal - Adventure Streaming</title>
     <script src="https://sdk.mercadopago.com/js/v2"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-image: url('https://images.pexels.com/photos/572897/pexels-photo-572897.jpeg'); /* Fixed high-quality nature image */
+            background-size: cover;
+            background-attachment: fixed;
+            color: #fff;
+        }
+        .hero-section {
+            text-align: center;
+            padding: 80px 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+        }
+        .btn-adventure {
+            background-color: #ff5733;
+            border: none;
+        }
+        .modal-content {
+            background-color: #333;
+            color: #fff;
+        }
+        .weather-widget {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            color: #333;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h2 class="text-center">Live Streaming Event</h2>
-        <button class="btn btn-primary" id="showBtn">SHOW</button>
-        
-        
-        <!-- Payment Modal -->
-        <div class="modal fade" id="paymentModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Payment</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <a id="payButton" href="#" class="btn btn-success">Pay Now</a>
-                    </div>
-                </div>
-            </div>
+        <div class="hero-section">
+            <h1 class="display-4">ClimaCocal - Explore a Natureza</h1>
+            <p class="lead">Acompanhe o clima para sua próxima aventura de escalada e mountain bike!</p>
+            <button class="btn btn-lg btn-adventure" id="showBtn">Participar do Evento</button>
         </div>
-
-        <!-- YouTube Streaming Modal -->
-        <div class="modal fade" id="streamingModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Live Stream</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <iframe id="youtubeFrame" width="100%" height="315" src="" frameborder="0" allowfullscreen></iframe>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        
         <!-- Weather Widget -->
-        <!-- <div id="weather" class="mt-4 p-3 bg-light"></div> -->
+        <div id="weather" class="mt-4 p-3 weather-widget">
+            <h4>Previsão do Tempo</h4>
+            <p>Aguardando dados do clima...</p>
+        </div>
+
+        <!-- 15-Day Weather Forecast -->
+        <div id="forecast" class="mt-4 p-3 weather-widget">
+            <h4>Previsão para os Próximos 15 Dias</h4>
+            <p>Aguardando dados...</p>
+        </div>
     </div>
 
     <script>
-         
         document.getElementById("showBtn").addEventListener("click", function () {
             fetch("/create-payment/")
                 .then(response => response.json())
                 .then(data => {
-                    window.location.href = data.init_point;  // Redirect user to Mercado Pago
+                    window.location.href = data.init_point;
                 });
         });
 
-   
+        const iCIDADE = "3137"; // Replace with your city ID
+        const iTOKEN = "546659d2c8b489261f185e4e10b21d3c"; // Replace with your token
+
+        const weatherIcons = {
+            "ec": "fa-cloud-sun",  // Parcialmente nublado
+            "ci": "fa-cloud-showers-heavy", // Chuvas isoladas
+            "ch": "fa-cloud-rain", // Chuvoso
+            "t": "fa-bolt", // Tempestade
+            "p": "fa-cloud", // Nublado
+            "n": "fa-moon", // Noite limpa
+            "g": "fa-wind", // Ventos fortes
+            "ne": "fa-snowflake" // Neve
+        };
 
         fetch("/weather/")
             .then(response => response.json())
             .then(data => {
-                document.getElementById("weather").innerHTML = `Temperature: ${data.data.temperature}°C`;
-            });
+                const iconClass = weatherIcons[data.data.icon] || "fa-cloud";
+                document.getElementById("weather").innerHTML = `
+                    <h4>Previsão do Tempo</h4>
+                    <p><i class="fas ${iconClass}"></i> <strong>${data.data.condition}</strong></p>
+                    <p><strong>Cidade:</strong> ${data.name}</p>
+                    <p><strong>Temperatura:</strong> ${data.data.temperature}°C</p>
+                    <p><strong>Umidade:</strong> ${data.data.humidity}%</p>
+                    <p><strong>Vento:</strong> ${data.data.wind_velocity} km/h (${data.data.wind_direction})</p>
+                    <p><strong>Data:</strong> ${data.data.date}</p>
+                `;
+            })
+            .catch(error => console.error("Erro ao buscar dados do clima:", error));
+            
+            // iCHAVE['text_icon']['text']['phrase']['reduced']
 
+            const climaTempoIcons2 = {
+                "2r": "fa-cloud",  // Cloudy
+                "2rn": "fa-cloud-moon",  // Cloudy Night
+                "1": "fa-sun",  // Clear Sky
+                "1n": "fa-moon",  // Clear Night
+                "3": "fa-cloud-showers-heavy",  // Rain
+                "4": "fa-bolt",  // Storm
+            };    
 
+        fetch(`http://apiadvisor.climatempo.com.br/api/v1/forecast/locale/${iCIDADE}/days/15?token=${iTOKEN}`)
+            .then(response => response.json())
+            .then(data => {
+                let forecastHtml = '<h4>Previsão para os Próximos 15 Dias</h4>';
+                data.data.forEach(day => {
+                    const forecastIconClass = climaTempoIcons2[day.text_icon.icon.day] || "fa-cloud";
+                    forecastHtml += `
+                        <p><strong>${day.date_br}:</strong> 
+                        <i class="fas ${forecastIconClass}"></i>                         
+                        - Chuva: ${day.rain.probability}% -  Máx: ${day.temperature.max}°C, Mín: ${day.temperature.min}°C - ${day.text_icon.text.phrase.reduced}</p>`;
+                });
+                document.getElementById("forecast").innerHTML = forecastHtml;
+            })
+            .catch(error => console.error("Erro ao buscar previsão do tempo:", error));
     </script>
     
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
 </body>
 </html>

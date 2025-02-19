@@ -1,4 +1,5 @@
 import mercadopago
+import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
@@ -29,9 +30,9 @@ def create_payment(request):
             "email": "bruno.amv@gmail.com",  # Mercado Pago auto-assigns an email
         },
         "back_urls": {
-           # "success": "http://127.0.0.1:8000/payment-success/", ##DEV
-            "success": "http://177.47.221.44:8000/payment-success/", ## PROD
-           # "failure": "http://13.58.251.9:8000/",
+            "success": "http://127.0.0.1:8000/payment-success/", ##DEV
+            "failure": "http://127.0.0.1:8000/payment-failure/",
+           # "success": "http://177.47.221.44:8000/payment-success/", ## PROD
         },
         "auto_return": "approved"
     }
@@ -47,8 +48,8 @@ def create_payment(request):
     # Send request to Mercado Pago
     preference_response = sdk.preference().create(preference_data)
     
-    # Print full response for debugging
-    print("Mercado Pago API Response:", preference_response)
+    # # Print full response for debugging
+    # print("Mercado Pago API Response:", preference_response)
 
     # Check if init_point exists
     if "response" in preference_response and "init_point" in preference_response["response"]:
@@ -62,6 +63,10 @@ def payment_success(request):
     cache.set("payment_status", "approved", timeout=600)
     return render(request, "payment_success.html")
 
+def payment_failure(request):
+    # Store that the user has failure paid
+    cache.set("payment_status", "failure", timeout=600)
+    return render(request, "payment_failure.html")
 
 
 @csrf_exempt
@@ -81,13 +86,13 @@ def check_payment_status(request):
     return JsonResponse({"status": status})
 
 
-# def get_weather(request):
-#     import requests
+def get_weather(request):
+    import requests
     
-#     API_TOKEN = "8309ca82f5db93cbec74e34a65312592"
-#     CITY_ID = "cocalzinho-de-goias"
-#     url = f"https://apiadvisor.climatempo.com.br/api/v1/weather/locale/{CITY_ID}/current?token={API_TOKEN}"
+    API_TOKEN = "546659d2c8b489261f185e4e10b21d3c"
+    CITY_ID = "3137"
+    url = f"https://apiadvisor.climatempo.com.br/api/v1/weather/locale/{CITY_ID}/current?token={API_TOKEN}"
     
-#     response = requests.get(url)
-#     data = response.json()
-#     return JsonResponse(data)
+    response = requests.get(url)
+    data = response.json()
+    return JsonResponse(data)
