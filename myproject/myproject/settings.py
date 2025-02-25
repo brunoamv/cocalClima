@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-0c5nlqopomq-h@6359!dqraj_lk56ta+tw^2!3=8t7^o&whfg#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["www.climacocal.com.br","192.168.3.136","*","0.0.0.0"]
 
 
 # Application definition
