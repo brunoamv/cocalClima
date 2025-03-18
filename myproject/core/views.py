@@ -32,8 +32,8 @@ def create_payment(request):
         "back_urls": {
             #"success": "http://127.0.0.1:8000/payment-success/", ##DEV
             #"failure": "http://127.0.0.1:8000/payment-failure/", ## DEV
-            "success": "http://192.168.3.136:8000/payment-success/", ## PROD
-            "failure": "http://192.168.3.136:8000/payment-failure/", ## PROD
+            "success": "http://climacocal:8000/payment-success/", ## PROD
+            "failure": "http://climacocal:8000/payment-failure/", ## PROD
         },
         "auto_return": "approved"
     }
