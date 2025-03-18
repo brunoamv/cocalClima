@@ -30,10 +30,10 @@ def create_payment(request):
             "email": "bruno.amv@gmail.com",  # Mercado Pago auto-assigns an email
         },
         "back_urls": {
+           "success": "https://climacocal.com.br/payment-success/",  # Produção
+           "failure": "https://climacocal.com.br/payment-failure/",  # Produção
             #"success": "http://127.0.0.1:8000/payment-success/", ##DEV
             #"failure": "http://127.0.0.1:8000/payment-failure/", ## DEV
-            "success": "http://climacocal:8000/payment-success/", ## PROD
-            "failure": "http://climacocal:8000/payment-failure/", ## PROD
         },
         "auto_return": "approved"
     }
