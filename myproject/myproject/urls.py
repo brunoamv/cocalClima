@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path
-from core.views import create_payment, payment_webhook, check_payment_status, home, payment_success ,payment_failure , get_weather
+from core.views import create_payment, payment_webhook, check_payment_status, home, payment_success ,payment_failure , get_weather , check_youtube_live , get_stream_url 
 urlpatterns = [
     path("", home, name="home"),
     path("create-payment/", create_payment, name="create_payment"),
@@ -23,6 +23,9 @@ urlpatterns = [
     path("webhook/", payment_webhook, name="webhook"),
     path("check-payment/", check_payment_status, name="check_payment"),
     path("weather/", get_weather, name="get_weather"),
+    path("check-youtube-live/", check_youtube_live, name="check_youtube_live"),
+    path("get-stream-url/", get_stream_url, name="get_stream_url"),
+
 ]
 
 

@@ -8,12 +8,44 @@ from django.shortcuts import render, redirect
 #MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-5215197145934497-010910-a8f4c879eb5cfbe282fc5b72ef91ddf3-234559853"
 
 MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6572778228467438-012815-7995636b4be0f51ec60422f0069b396a-2210813103"
-
+YOUTUBE_API_KEY = "AIzaSyAfNYAuhX5za5hQpZk3Dx5cesgGULWuVIE"
+YOUTUBE_VIDEO_ID = "1tqLeIAcM6w"
 
 
 def home(request):
     return render(request, "index.html")
 
+
+def check_youtube_live(request):
+    try:
+        url = f"https://www.googleapis.com/youtube/v3/videos?id={YOUTUBE_VIDEO_ID}&part=liveStreamingDetails&key={YOUTUBE_API_KEY}"
+        response = requests.get(url).json()
+        
+        # Verifica se a chave "items" existe e não está vazia
+        if "items" in response and response["items"]:
+            live_details = response["items"][0].get("liveStreamingDetails", {})
+
+            actual_start_time = live_details.get("actualStartTime")  # Quando a live começou
+            actual_end_time = live_details.get("actualEndTime")  # Quando a live terminou (se existir)
+
+            # Se "actualStartTime" existe e "actualEndTime" NÃO existe, a live ainda está ao vivo
+            if actual_start_time and not actual_end_time:
+                return JsonResponse({"live": True})
+
+        return JsonResponse({"live": False})  # Retorna False se a live terminou ou nunca começou
+    
+    except Exception as e:
+        print(f"Erro ao verificar YouTube Live: {e}")  # Debug no terminal
+        return JsonResponse({"live": False, "error": str(e)})
+
+def get_stream_url(request):
+    try:
+        if check_youtube_live(request).content.decode('utf-8').find('"live": true') != -1:
+            return JsonResponse({"url": f"https://www.youtube.com/embed/{YOUTUBE_VIDEO_ID}?autoplay=1&mute=1"})
+        else:
+            return JsonResponse({"error": "Live não está disponível."}, status=403)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 def create_payment(request):
     sdk = mercadopago.SDK(MERCADO_PAGO_ACCESS_TOKEN)
@@ -30,10 +62,10 @@ def create_payment(request):
             "email": "bruno.amv@gmail.com",  # Mercado Pago auto-assigns an email
         },
         "back_urls": {
-           "success": "https://climacocal.com.br/payment-success/",  # Produção
-           "failure": "https://climacocal.com.br/payment-failure/",  # Produção
-            #"success": "http://127.0.0.1:8000/payment-success/", ##DEV
-            #"failure": "http://127.0.0.1:8000/payment-failure/", ## DEV
+           #"success": "https://climacocal.com.br/payment-success/",  # Produção
+           #"failure": "https://climacocal.com.br/payment-failure/",  # Produção
+            "success": "http://127.0.0.1:8000/payment-success/", ##DEV
+            "failure": "http://127.0.0.1:8000/payment-failure/", ## DEV
         },
         "auto_return": "approved"
     }
