@@ -161,7 +161,7 @@
                 return days[date.getDay()];
             }
             
-            fetch(`http://apiadvisor.climatempo.com.br/api/v1/forecast/locale/${iCIDADE}/days/15?token=${iTOKEN}`)
+            fetch(`https://apiadvisor.climatempo.com.br/api/v1/forecast/locale/${iCIDADE}/days/15?token=${iTOKEN}`)
             .then(response => response.json())
             .then(data => {
                 let forecastHtml = '';
