@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect
 
 MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6572778228467438-012815-7995636b4be0f51ec60422f0069b396a-2210813103"
 YOUTUBE_API_KEY = "AIzaSyAfNYAuhX5za5hQpZk3Dx5cesgGULWuVIE"
-YOUTUBE_VIDEO_ID = "eaqC1QfPdpg"
+YOUTUBE_VIDEO_ID = "HOO2a5lGGiA"
 
 
 def home(request):
