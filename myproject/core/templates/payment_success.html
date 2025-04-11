@@ -1,105 +1,124 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pagamento - ClimaCocal</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body {
-            background-image: url('https://images.pexels.com/photos/572897/pexels-photo-572897.jpeg');
-            background-size: cover;
-            background-attachment: fixed;
-            color: #fff;
-            user-select: none; /* Impede seleção de texto */
-        }
-        .payment-container {
-            text-align: center;
-            padding: 50px 30px;
-            background: rgba(0, 0, 0, 0.8);
-            border-radius: 10px;
-            margin-top: 50px;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-        }
-        #countdown {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: red;
-        }
-        iframe {
-            pointer-events: none; /* Impede interações */
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pagamento - ClimaCocal</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body oncontextmenu="return false"> <!-- Bloqueia clique direito -->
-    <div class="container d-flex justify-content-center">
-        <div class="col-md-6 payment-container">
-            <h2 class="mb-4"><i class="fas fa-check-circle text-success"></i> Pagamento Aprovado</h2>
-            <p>Seu pagamento foi realizado com sucesso! Agora você pode acessar a transmissão ao vivo.</p>
-            <button id="watchStreamBtn" class="btn btn-success">Assistir ao Evento</button>
-            <a href="/" class="btn btn-light">Voltar para a Página Inicial</a>
-        </div>
-    </div>
+<body oncontextmenu="return false">
+  <!-- HEADER PADRÃO -->
+  <header class="site-header">
+    <div class="header-container">
+      <!-- Logo -->
+      <img src="/static/img/logo_branca_header.png" alt="Logo ClimaCocal" class="logo" />
 
-    <!-- Modal -->
-    <div class="modal fade" id="streamingModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Transmissão ao Vivo</h5>
-                    <span id="countdown">5:00</span>
-                </div>
-                <div class="modal-body">
-                    <iframe id="youtubeFrame" width="100%" height="315" frameborder="0" allowfullscreen></iframe>
-                </div>
+      <!-- Menu e Frase -->
+      <div class="menu-area">
+        <button id="menuToggle" class="menu-toggle" aria-label="Menu">
+          <i class="fas fa-bars"></i> <span class="menu-label">Menu</span>
+        </button>
+        <h1 class="header-phrase">Como tá o tempo?</h2>
+
+        <nav class="menu-dropdown" id="menuDropdown">
+          <ul>
+            <li><a href="/">Início</a></li>            
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO -->
+  <div class="container d-flex justify-content-center">
+    <div class="col-lg-6 col-md-8 col-sm-10 payment-container mt-5 p-4" style="background-color: #fff3cd; border-radius: 12px; text-align: center; box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);">
+      <h2 class="mb-4 text-success"><i class="fas fa-check-circle"></i> Pagamento Aprovado</h2>
+      <p>Seu pagamento foi realizado com sucesso! Você pode agora acessar a transmissão ao vivo.</p>
+      <button id="watchStreamBtn" class="btn btn-primary hero-btn mb-2">
+        <i class="fas fa-play-circle me-2"></i> Assistir ao Evento
+      </button>
+      <br />
+      <a href="/" class="btn btn-secondary mt-2"><i class="fas fa-home me-1"></i> Página Inicial</a>
+    </div>
+  </div>
+<!-- FECHA .container -->
+
+<!-- MODAL DE TRANSMISSÃO -->
+    <div class="modal fade" id="streamingModal" hidden="TRUE" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #003366; color: white;">
+            <h5 class="modal-title">Transmissão ao Vivo</h5>
+            <span id="countdown">3:00</span>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+            <iframe id="youtubeFrame" frameborder="0" allowfullscreen style="width: 100%; height: 360px; pointer-events: none;"></iframe>
             </div>
         </div>
+        </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-       document.getElementById("watchStreamBtn").addEventListener("click", function () {
-            fetch("/check-payment/")
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === "approved") {
-                        fetch("/get-stream-url/") // Busca a URL segura no backend
-                            .then(response => response.json())
-                            .then(videoData => {
-                                if (videoData.url) {
-                                    let modal = new bootstrap.Modal(document.getElementById("streamingModal"));
-                                    document.getElementById("youtubeFrame").src = videoData.url;
-                                    modal.show();
-                                    startCountdown(modal);
-                                } else {
-                                    alert("Erro ao carregar o vídeo.");
-                                }
-                            });
-                    } else {
-                        alert("Pagamento ainda não aprovado.");
-                    }
-                });
-        });
 
-        function startCountdown(modal) {
-            let timeLeft = 300;
-            let countdownElem = document.getElementById("countdown");
-            let timer = setInterval(() => {
-                let minutes = Math.floor(timeLeft / 60);
-                let seconds = timeLeft % 60;
-                countdownElem.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-                if (timeLeft-- <= 0) {
-                    clearInterval(timer);
-                    modal.hide();
-                    document.getElementById("youtubeFrame").src = "";
+<!-- FOOTER -->
+  <footer>
+    <img src="/static/img/logo_rodape.png" alt="Logo ClimaCocal Rodapé" />
+    <p>&copy; 2025 ClimaCocal. Todos os direitos reservados.</p>
+  </footer>
+
+ 
+
+
+
+  <script>
+    // Botão de menu toggle
+    const menuToggle = document.getElementById("menuToggle");
+    const menuDropdown = document.getElementById("menuDropdown");
+    menuToggle?.addEventListener("click", () => {
+      menuDropdown.style.display =
+        menuDropdown.style.display === "block" ? "none" : "block";
+    });
+
+    // Abrir modal de transmissão
+    document.getElementById("watchStreamBtn").addEventListener("click", function () {
+      document.getElementById("streamingModal").hidden = false;
+      fetch("/check-payment/")
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === "approved") {
+            fetch("/get-stream-url/")
+              .then(response => response.json())
+              .then(videoData => {
+                if (videoData.url) {
+                  let modal = new bootstrap.Modal(document.getElementById("streamingModal"));
+                  document.getElementById("youtubeFrame").src = videoData.url;
+                  modal.show();
+                  startCountdown(modal);
+                } else {
+                  alert("Erro ao carregar o vídeo.");
                 }
-            }, 1000);
+              });
+          } else {
+            alert("Pagamento ainda não aprovado.");
+          }
+        });
+    });
+
+    function startCountdown(modal) {
+      let timeLeft = 180; // 3 minutos
+      const countdownElem = document.getElementById("countdown");
+      const timer = setInterval(() => {
+        let minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        countdownElem.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        if (timeLeft-- <= 0) {
+          clearInterval(timer);
+          modal.hide();
+          document.getElementById("youtubeFrame").src = "";
         }
-    </script>
+      }, 1000);
+    }
+  </script>
 </body>
 </html>

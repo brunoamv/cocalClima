@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect
 
 MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6572778228467438-012815-7995636b4be0f51ec60422f0069b396a-2210813103"
 YOUTUBE_API_KEY = "AIzaSyAfNYAuhX5za5hQpZk3Dx5cesgGULWuVIE"
-YOUTUBE_VIDEO_ID = "HOO2a5lGGiA"
+YOUTUBE_VIDEO_ID = "C6DgSQZd5Pw"
 
 
 def home(request):
@@ -52,7 +52,7 @@ def create_payment(request):
 
     preference_data = {
         "items": [{
-            "title": "YouTube Live Access",
+            "title": "Um acesso de 3min ao Clima Cocal",
             "quantity": 1,
             "currency_id": "BRL",
             "unit_price": 3.00
@@ -62,10 +62,10 @@ def create_payment(request):
             "email": "bruno.amv@gmail.com",  # Mercado Pago auto-assigns an email
         },
         "back_urls": {
-           "success": "https://climacocal.com.br/payment-success/",  # Produção
-           "failure": "https://climacocal.com.br/payment-failure/",  # Produção
-           # "success": "http://127.0.0.1:8000/payment-success/", ##DEV
-           # "failure": "http://127.0.0.1:8000/payment-failure/", ## DEV
+          # "success": "https://climacocal.com.br/payment-success/",  # Produção
+          # "failure": "https://climacocal.com.br/payment-failure/",  # Produção
+            "success": "http://127.0.0.1:8000/payment-success/", ##DEV
+            "failure": "http://127.0.0.1:8000/payment-failure/", ## DEV
         },
         "auto_return": "approved"
     }
