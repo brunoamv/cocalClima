@@ -5,9 +5,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 from django.shortcuts import render, redirect
 
-#MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-5215197145934497-010910-a8f4c879eb5cfbe282fc5b72ef91ddf3-234559853"
+#MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-5215197145934497-010910-a8f4c879eb5cfbe282fc5b72ef91ddf3-234559853" # ANTIGA
+#MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6572778228467438-012815-7995636b4be0f51ec60422f0069b396a-2210813103" # ANTIGA TESTE 
 
-MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6572778228467438-012815-7995636b4be0f51ec60422f0069b396a-2210813103"
+MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6307889355339219-070811-052b29ec7cd8b6761b3fd53128543c5f-61367856"
+############################Access Token PRD APP_USR-6307889355339219-070811-052b29ec7cd8b6761b3fd53128543c5f-61367856
+########## PUBLIC KEY PRD APP_USR-516092f3-91d4-4fe7-849b-55534ef996d2
+
 YOUTUBE_API_KEY = "AIzaSyAfNYAuhX5za5hQpZk3Dx5cesgGULWuVIE"
 YOUTUBE_VIDEO_ID = "C6DgSQZd5Pw"
 
@@ -62,10 +66,10 @@ def create_payment(request):
             "email": "bruno.amv@gmail.com",  # Mercado Pago auto-assigns an email
         },
         "back_urls": {
-          # "success": "https://climacocal.com.br/payment-success/",  # Produção
-          # "failure": "https://climacocal.com.br/payment-failure/",  # Produção
-            "success": "http://127.0.0.1:8000/payment-success/", ##DEV
-            "failure": "http://127.0.0.1:8000/payment-failure/", ## DEV
+           "success": "https://climacocal.com.br/payment-success/",  # Produção
+           "failure": "https://climacocal.com.br/payment-failure/",  # Produção
+          #  "success": "http://127.0.0.1:8000/payment-success/", ##DEV
+          #  "failure": "http://127.0.0.1:8000/payment-failure/", ## DEV
         },
         "auto_return": "approved"
     }
