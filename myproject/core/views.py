@@ -6,9 +6,10 @@ from django.core.cache import cache
 from django.shortcuts import render, redirect
 
 #MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-5215197145934497-010910-a8f4c879eb5cfbe282fc5b72ef91ddf3-234559853" # ANTIGA
-#MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6572778228467438-012815-7995636b4be0f51ec60422f0069b396a-2210813103" # ANTIGA TESTE 
 
-MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6307889355339219-070811-052b29ec7cd8b6761b3fd53128543c5f-61367856"
+MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6572778228467438-012815-7995636b4be0f51ec60422f0069b396a-2210813103" # ANTIGA TESTE 
+
+#MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6307889355339219-070811-052b29ec7cd8b6761b3fd53128543c5f-61367856"
 ############################Access Token PRD APP_USR-6307889355339219-070811-052b29ec7cd8b6761b3fd53128543c5f-61367856
 ########## PUBLIC KEY PRD APP_USR-516092f3-91d4-4fe7-849b-55534ef996d2
 
@@ -56,7 +57,7 @@ def create_payment(request):
 
     preference_data = {
         "items": [{
-            "title": "Um acesso de 3min ao Clima Cocal",
+            "title": "Único acesso de 3 minutos a transmissão ao vivo",
             "quantity": 1,
             "currency_id": "BRL",
             "unit_price": 3.00

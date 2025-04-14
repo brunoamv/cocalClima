@@ -13,7 +13,12 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+from django.conf import settings
+from django.conf.urls.static import static
+
 from django.urls import path
+
 from core.views import create_payment, payment_webhook, check_payment_status, home, payment_success ,payment_failure , get_weather , check_youtube_live , get_stream_url 
 urlpatterns = [
     path("", home, name="home"),
@@ -26,8 +31,9 @@ urlpatterns = [
     path("check-youtube-live/", check_youtube_live, name="check_youtube_live"),
     path("get-stream-url/", get_stream_url, name="get_stream_url"),
 
-]
+] 
 
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # urlpatterns = [
 #     path('admin/', admin.site.urls),
