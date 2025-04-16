@@ -54,25 +54,26 @@
   </header>
 
   <!-- HERO SECTION -->
-  <section class="hero">
-    <div class="hero-content">
-      <div class="hero-text">
-        <h1>Ao vivo<br>3 minutos<br>3 reais</h1>
-        <button id="payBtn2" class="btn-primary hero-btn">Assistir Agora</button>
-        <p id="statusMsg2" class="mt-2"></p>
-        <div class="baloes">
-          <p class="balao">Tá na dúvida se vem?</p>
-          <p class="balao">Ninguém te respondeu se tá sol?</p>
-          <p class="balao">Não confia no app de clima?</p>
-        </div>
-      </div>
-      <div class="hero-image">
-        <div class="img-bg">
-          <img src="static/img/maocelular.png" alt="Celular com transmissão ao vivo" />
-        </div>
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-text">
+      <h1>Ao vivo<br>3 minutos<br>3 reais</h1>
+      <button id="payBtn2" class="btn-primary hero-btn">Assistir Agora</button>
+      <p id="statusMsg2" class="mt-2"></p>
+
+      <div class="baloes">
+        <p class="balao">💬 Tá na dúvida se vem?</p>
+        <p class="balao">💬 Ninguém te respondeu se tá sol?</p>
+        <p class="balao">💬 Não confia no app de clima?</p>
       </div>
     </div>
-  </section>
+    <div class="hero-image">
+      <div class="img-bg">
+        <img src="{% static 'img/maocelular.png' %}" alt="Celular com transmissão ao vivo" />
+      </div>
+    </div>
+  </div>
+</section>
 
   <!-- FORECAST -->
   <section id="previsao" class="forecast-section">

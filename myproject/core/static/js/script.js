@@ -102,10 +102,11 @@ fetch("/weather/")
     };  
     
     function getWeekday(dateString) {
-        const days = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
-        const date = new Date(dateString);
-        return days[date.getDay()];
-    }
+      const days = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+      const [year, month, day] = dateString.split("-").map(Number);
+      const date = new Date(year, month - 1, day);  // Mês começa do zero
+      return days[date.getDay()];
+  }
     
 fetch(`https://apiadvisor.climatempo.com.br/api/v1/forecast/locale/${iCIDADE}/days/15?token=${iTOKEN}`)
 .then(response => response.json())
