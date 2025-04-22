@@ -14,8 +14,7 @@ MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6572778228467438-012815-7995636b4be0f51ec60
 ########## PUBLIC KEY PRD APP_USR-516092f3-91d4-4fe7-849b-55534ef996d2
 
 YOUTUBE_API_KEY = "AIzaSyAfNYAuhX5za5hQpZk3Dx5cesgGULWuVIE"
-YOUTUBE_VIDEO_ID = "uYHWzAMDALo"
-def home(request):
+YOUTUBE_VIDEO_ID = "od3chyG9f2o"def home(request):
     return render(request, "index.html")
 
 
