@@ -20,3 +20,6 @@ media/
 *.log
 
 gunicorn.sock
+
+# Arquivos com senha do youtube (Login)
+youtube/
