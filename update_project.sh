@@ -80,5 +80,9 @@ else
     send_email "$SUBJECT_SUCCESS"
 fi
 
+
+
+
+
 log "==== Fim do update automático ===="
 exit 0
