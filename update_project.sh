@@ -1,88 +1,86 @@
 #!/bin/bash
 
-# Arquivos e Configurações
+# Caminhos e configurações
 PROJECT_DIR="/home/bruno/cocalClima"
 LOG_FILE="$PROJECT_DIR/update_project.log"
 GIT_BIN="/usr/bin/git"
 DOCKER_COMPOSE_BIN="/usr/bin/docker-compose"
 DOCKER_BIN="/usr/bin/docker"
+MSMTP_BIN="/usr/bin/msmtp"
 
-# Configurações de E-mail
+# E-mail via msmtp
 EMAIL_TO="bruno.amv@gmail.com"
-MAIL_BIN="/usr/bin/mail"  # comando 'mail' instalado via 'mailutils'
-SUBJECT_SUCCESS="✅ Update Automático Concluído com Sucesso"
-SUBJECT_ERROR="❌ Erro no Update Automático do Servidor"
+EMAIL_ACCOUNT="brevo"  # nome da conta no ~/.msmtprc
 
-# Função para logar mensagens
+# Funcao para logar
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
 }
 
-# Função para enviar e-mail
+# Envia e-mail como texto puro (evita html e = quebras)
 send_email() {
     local subject="$1"
-    if [ -x "$MAIL_BIN" ]; then
-        tail -n 50 "$LOG_FILE" | $MAIL_BIN -s "$subject" "$EMAIL_TO"
-        log "E-mail enviado: $subject"
-    else
-        log "ERRO: Comando 'mail' não encontrado. Não foi possível enviar o e-mail."
-    fi
+    {
+        echo "Subject: $subject"
+        echo "To: $EMAIL_TO"
+        echo "Content-Type: text/plain; charset=UTF-8"
+        echo
+        tail -n 50 "$LOG_FILE"
+    } | $MSMTP_BIN -a "$EMAIL_ACCOUNT" "$EMAIL_TO"
+    log "E-mail enviado com assunto: $subject"
 }
 
-# =========== SCRIPT COMEÇA AQUI ===========
+# Inicio do processo
+log "==== Iniciando update Automatico ===="
 
-log "==== Iniciando update automático ===="
+cd "$PROJECT_DIR" || {
+    log "ERRO: Falha ao entrar no diretório $PROJECT_DIR"
+    send_email "❌ Erro no Update Automatico"
+    exit 1
+}
 
-cd "$PROJECT_DIR" || { log "ERRO: Falha ao entrar no diretório $PROJECT_DIR"; send_email "$SUBJECT_ERROR"; exit 1; }
-
-# Atualizar repositório
 log "Executando git fetch..."
 if ! $GIT_BIN fetch origin; then
     log "ERRO: git fetch falhou."
-    send_email "$SUBJECT_ERROR"
+    send_email "❌ Erro no Update Automatico"
     exit 1
 fi
 
-# Verificar se há atualizações
 LOCAL_HASH=$($GIT_BIN rev-parse HEAD)
 REMOTE_HASH=$($GIT_BIN rev-parse origin/main)
 
 if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
     log "Atualizações encontradas. Executando git pull..."
     if $GIT_BIN pull; then
-        log "git pull concluído com sucesso."
+        log "git pull concluido com sucesso."
 
-        # Derrubar containers
         log "Derrubando containers atuais..."
         if ! $DOCKER_COMPOSE_BIN down; then
             log "ERRO: docker-compose down falhou."
-            send_email "$SUBJECT_ERROR"
+            send_email "❌ Erro no Update Automatico"
             exit 1
         fi
 
-        # Subir containers atualizados
         log "Subindo containers atualizados..."
         if ! $DOCKER_COMPOSE_BIN up -d --build; then
             log "ERRO: docker-compose up --build falhou."
-            send_email "$SUBJECT_ERROR"
+            send_email "❌ Erro no Update Automatico"
             exit 1
         fi
 
         log "Servidor atualizado e containers reiniciados com sucesso."
-        send_email "$SUBJECT_SUCCESS"
+        log "==== Fim do update Automatico ===="
+        send_email "✅ Update Automatico Concluido com Sucesso"
     else
         log "ERRO: git pull falhou."
-        send_email "$SUBJECT_ERROR"
+        log "==== Fim do update Automatico ===="
+        send_email "❌ Erro no Update Automatico"
         exit 1
     fi
 else
-    log "Nenhuma atualização encontrada. Nenhuma ação necessária."
-    send_email "$SUBJECT_SUCCESS"
+    log "Nenhuma atualizacao encontrada. Nenhuma acao necessaria."
+    log "==== Fim do update Automatico ===="
+    send_email "❌ Update Automatico SEM ALTERACAO"
 fi
 
 
-
-
-
-log "==== Fim do update automático ===="
-exit 0
