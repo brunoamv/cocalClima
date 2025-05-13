@@ -48,6 +48,18 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     });
     
+    document.getElementById("payBtn2").addEventListener("click", function () {
+      fetch("/create-payment/")
+          .then(response => response.json())
+          .then(data => {
+              if (data.init_point) {
+                  window.location.href = data.init_point;
+              } else {
+                  alert("Erro ao processar pagamento.");
+              }
+          });
+    });
+
     checkYouTubeLive();
     setInterval(checkYouTubeLive, 30000);
 

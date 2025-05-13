@@ -23,7 +23,8 @@ function Stop-ProcessSafe {
             Write-Log "Processo $processName já estava parado."
         }
     } catch {
-        Write-Log "Erro ao parar processo $processName: $_"
+        $errorMsg = $_ | Out-String
+        Write-Log ("Erro ao parar processo $processName:`n" + $errorMsg)
     }
 }
 
@@ -36,7 +37,8 @@ function Restart-ServiceSafe {
         Start-Service -Name $serviceName -ErrorAction Stop
         Write-Log "Serviço $serviceName reiniciado com sucesso."
     } catch {
-        Write-Log "Erro ao reiniciar serviço $serviceName: $_"
+        $errorMsg = $_ | Out-String
+        Write-Log ("Erro ao reiniciar serviço $serviceName:`n" + $errorMsg)
     }
 }
 
@@ -47,13 +49,14 @@ function Start-ProcessSafe {
     )
     try {
         if ($arguments) {
-            Start-Process -FilePath $path -ArgumentList $arguments -NoNewWindow
+            Start-Process -FilePath $path -ArgumentList $arguments -WindowStyle Hidden
         } else {
-            Start-Process -FilePath $path -NoNewWindow
+            Start-Process -FilePath $path -WindowStyle Hidden
         }
         Write-Log "Processo iniciado: $path $arguments"
     } catch {
-        Write-Log "Erro ao iniciar processo $path: $_"
+        $errorMsg = $_ | Out-String
+        Write-Log ("Erro ao iniciar processo $path:`n" + $errorMsg)
     }
 }
 
@@ -78,7 +81,6 @@ if (-not $simNextRunning) {
 }
 
 # 4. Iniciar o ffmpeg-simnext novamente com os argumentos
-# Tentar recuperar os argumentos anteriores
 $ffmpegProc = Get-CimInstance Win32_Process | Where-Object { $_.Name -eq "ffmpeg-simnext.exe" }
 if ($ffmpegProc) {
     $previousArgs = $ffmpegProc.CommandLine
@@ -91,4 +93,3 @@ if ($ffmpegProc) {
 
 Write-Log "==== Rotina finalizada ===="
 exit
-
