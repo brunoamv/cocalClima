@@ -23,3 +23,6 @@ gunicorn.sock
 
 # Arquivos com senha do youtube (Login)
 youtube/
+
+# Arquivos com log
+scripts/logs/

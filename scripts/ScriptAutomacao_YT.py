@@ -5,14 +5,12 @@ ao stream RTMP fixo (stream key yx67‑vfxc‑q2vb‑4rkb‑402d).
 Atualiza myproject/core/views.py com o YOUTUBE_VIDEO_ID.
 """
 
-
 import sys
 sys.path.insert(0, "/home/bruno/Desktop/Mega/Curso/Django/App/cocalTempo2/myvenv/lib/python3.12/site-packages")
 
-
 import os
+import logging
 from datetime import datetime, timedelta, timezone
-
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -21,9 +19,29 @@ from google.auth.transport.requests import Request
 
 # --- Caminhos ----------------------------------------------------------
 BASE_DIR = "/home/bruno/Desktop/Mega/Curso/Django/App/cocalTempo2"
+SCRIPT_NAME = os.path.basename(__file__)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_TIME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+LOG_DIR = os.path.join(SCRIPT_DIR, "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+
+LOG_FILE = os.path.join(LOG_DIR, f"{os.path.splitext(SCRIPT_NAME)[0]}_log_{LOG_TIME}.log")
+
+
+
+
 CLIENT_SECRET_FILE = os.path.join(BASE_DIR, "youtube", "client_secret.json")
 TOKEN_FILE         = os.path.join(BASE_DIR, "youtube", "token.json")
 VIEWS_FILE         = os.path.join(BASE_DIR, "myproject", "core", "views.py")
+
+# --- Configuração de logging ------------------------------------------
+logging.basicConfig(
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+logger = logging.getLogger()
 
 # --- Constantes --------------------------------------------------------
 SCOPES          = ["https://www.googleapis.com/auth/youtube"]
@@ -31,7 +49,6 @@ FIXED_STREAMKEY = "yx67-vfxc-q2vb-4rkb-402d"
 
 # ----------------------------------------------------------------------
 def get_authenticated_service():
-    """Autentica e devolve objeto YouTube API"""
     creds = None
     if os.path.exists(TOKEN_FILE):
         creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
@@ -47,10 +64,6 @@ def get_authenticated_service():
 
 # ----------------------------------------------------------------------
 def find_fixed_stream(youtube):
-    """
-    Retorna (stream_id, rtmp_url) do stream que contém a FIXED_STREAMKEY.
-    Se não existir, cria um novo stream com essa chave.
-    """
     req = youtube.liveStreams().list(part="snippet,cdn", mine=True, maxResults=50)
     while req:
         res = req.execute()
@@ -60,7 +73,6 @@ def find_fixed_stream(youtube):
                 return item["id"], info["ingestionAddress"]
         req = youtube.liveStreams().list_next(req, res)
 
-    # ------------- criar stream --------------
     stream = youtube.liveStreams().insert(
         part="snippet,cdn",
         body={
@@ -74,14 +86,13 @@ def find_fixed_stream(youtube):
         }
     ).execute()
 
-    # A API gera uma streamKey aleatória; precisamos alterá‑la manualmente
     youtube.liveStreams().update(
         part="cdn",
         body={
             "id": stream["id"],
             "cdn": {**stream["cdn"], "ingestionInfo": {
                 **stream["cdn"]["ingestionInfo"],
-                "streamName": FIXED_STREAMKEY       # força chave fixa
+                "streamName": FIXED_STREAMKEY
             }}
         }
     ).execute()
@@ -91,27 +102,19 @@ def find_fixed_stream(youtube):
 
 # ----------------------------------------------------------------------
 def delete_active_broadcasts(youtube):
-    """
-    Encerra qualquer live que esteja em andamento ou agendada.
-    """
-    req = youtube.liveBroadcasts().list(
-        part="id,status",
-        mine=True,
-        maxResults=50
-    )
+    req = youtube.liveBroadcasts().list(part="id,status", mine=True, maxResults=50)
     while req:
         res = req.execute()
         for item in res.get("items", []):
-            life_cycle = item["status"].get("lifeCycleStatus", "")
-            if life_cycle in ("live", "created", "ready"):
+            status = item["status"].get("lifeCycleStatus", "")
+            if status in ("live", "created", "ready"):
                 bid = item["id"]
                 youtube.liveBroadcasts().delete(id=bid).execute()
-                print(f"Transmissão {bid} encerrada.")
+                logger.info(f"Transmissão {bid} encerrada.")
         req = youtube.liveBroadcasts().list_next(req, res)
 
 # ----------------------------------------------------------------------
 def create_new_broadcast(youtube, stream_id):
-    """Cria nova transmissão e a vincula ao stream fixo."""
     now = datetime.now(timezone.utc)
     start = (now + timedelta(minutes=2)).isoformat()
     end   = (now + timedelta(hours=1)).isoformat()
@@ -150,26 +153,32 @@ def update_views_py(video_id):
                 f.write(line)
         if not updated:
             f.write(f'\nYOUTUBE_VIDEO_ID = "{video_id}"\n')
-    print(f"views.py atualizado com YOUTUBE_VIDEO_ID = {video_id}")
+    logger.info(f"views.py atualizado com YOUTUBE_VIDEO_ID = {video_id}")
 
 # ----------------------------------------------------------------------
 def git_commit():
     os.system(f"cd {BASE_DIR} && git add {VIEWS_FILE} && "
               "git commit -m 'Atualiza YOUTUBE_VIDEO_ID automaticamente' && "
               "git push")
+    logger.info("Commit e push feitos com sucesso.")
 
 # ----------------------------- MAIN -----------------------------------
 if __name__ == "__main__":
-    yt = get_authenticated_service()
+    try:
+        logger.info("==== Início do script de automação YouTube ====")
 
-    delete_active_broadcasts(yt)
-    stream_id, rtmp_url = find_fixed_stream(yt)
-    broadcast_id = create_new_broadcast(yt, stream_id)
+        yt = get_authenticated_service()
+        delete_active_broadcasts(yt)
+        stream_id, rtmp_url = find_fixed_stream(yt)
+        broadcast_id = create_new_broadcast(yt, stream_id)
 
-    update_views_py(broadcast_id)
-    git_commit()
+        update_views_py(broadcast_id)
+        git_commit()
 
-    print("\n=== Dados da transmissão ===")
-    print("Broadcast ID :", broadcast_id)
-    print("RTMP URL     :", f"{rtmp_url}/{FIXED_STREAMKEY}")
+        logger.info("Broadcast ID : %s", broadcast_id)
+        logger.info("RTMP URL     : %s/%s", rtmp_url, FIXED_STREAMKEY)
+        logger.info("==== Fim do script com sucesso ====")
 
+    except Exception as e:
+        logger.exception("Erro durante a execução do script:")
+        raise
