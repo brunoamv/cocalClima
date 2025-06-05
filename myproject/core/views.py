@@ -15,7 +15,7 @@ MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6572778228467438-012815-7995636b4be0f51ec60
 
 
 YOUTUBE_API_KEY = "AIzaSyAfNYAuhX5za5hQpZk3Dx5cesgGULWuVIE"
-YOUTUBE_VIDEO_ID = "AViDkb7r1T4"
+YOUTUBE_VIDEO_ID = "KuFc0HGzFNs"
 
 def home(request):
     return render(request, "index.html")
