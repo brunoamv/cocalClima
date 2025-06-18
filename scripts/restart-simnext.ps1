@@ -24,7 +24,7 @@ function Stop-ProcessSafe {
         }
     } catch {
         $errorMsg = $_ | Out-String
-        Write-Log ("Erro ao parar processo $processName:`n" + $errorMsg)
+        Write-Log ("Erro ao parar processo " + $processName + "`n" + $errorMsg)
     }
 }
 
@@ -37,8 +37,8 @@ function Restart-ServiceSafe {
         Start-Service -Name $serviceName -ErrorAction Stop
         Write-Log "Serviço $serviceName reiniciado com sucesso."
     } catch {
-        $errorMsg = $_ | Out-String
-        Write-Log ("Erro ao reiniciar serviço $serviceName:`n" + $errorMsg)
+        $errorMsg = $_ | Out-String        
+        Write-Log ("Erro ao parar processo " + $serviceName + "`n" + $errorMsg)
     }
 }
 
@@ -56,7 +56,7 @@ function Start-ProcessSafe {
         Write-Log "Processo iniciado: $path $arguments"
     } catch {
         $errorMsg = $_ | Out-String
-        Write-Log ("Erro ao iniciar processo $path:`n" + $errorMsg)
+        Write-Log ("Erro ao parar processo " + $path + "`n" + $errorMsg)        
     }
 }
 
