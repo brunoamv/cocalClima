@@ -22,7 +22,7 @@ services:
     labels:
       - io.portainer.accesscontrol.public
       - traefik.enable=true
-      - traefik.http.routers.web.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`) || Host(`${PRIVATE_DOMAIN}`) ||
+      - traefik.http.routers.web.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`) || Host(`${PRIVATE_DOMAIN}`)
       - traefik.http.services.web.loadbalancer.server.port=8000
 
   db:
