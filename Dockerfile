@@ -7,6 +7,11 @@ WORKDIR /app
 # Copia o arquivo de dependências primeiro para instalar os pacotes antes do código
 COPY requirements.txt /app/requirements.txt
 
+COPY nginx/static/robots.txt /etc/nginx/static/robots.txt
+COPY nginx/static/sitemap.xml /etc/nginx/static/sitemap.xml
+
+
+
 # Instala as dependências
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
