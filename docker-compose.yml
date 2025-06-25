@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
 
-  web:
+  climacocal:
     build:
       context: .
     container_name: climacocal_app
@@ -13,17 +13,17 @@ services:
     volumes:
       - ./myproject:/app
       - ./requirements.txt:/app/requirements.txt
-      - static_volume:/app/staticfiles
+      - climacocal_static_volume:/app/staticfiles
     command: >
       sh -c "python manage.py collectstatic --noinput && \
              gunicorn --bind 0.0.0.0:8000 myproject.wsgi:application"
     networks:
       - proxy
     labels:
-      - io.portainer.accesscontrol.public
+
       - traefik.enable=true
-      - traefik.http.routers.web.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`) || Host(`${PRIVATE_DOMAIN}`)
-      - traefik.http.services.web.loadbalancer.server.port=8000
+      - traefik.http.routers.climacocal.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`) || Host(`${PRIVATE_DOMAIN}`)
+      - traefik.http.services.climacocal.loadbalancer.server.port=8000
 
   db:
     image: postgres:15
@@ -31,14 +31,14 @@ services:
     restart: always
     env_file: .env
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - climacocal_postgres_data:/var/lib/postgresql/data
     networks:
       - proxy
 
   
 volumes:
-  postgres_data:
-  static_volume:
+  climacocal_postgres_data:
+  climacocal_static_volume:
 
 networks:
   proxy:
