@@ -1,21 +1,16 @@
+import os
 import mercadopago
 import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 from django.shortcuts import render, redirect
+from django.conf import settings
 
-#MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-5215197145934497-010910-a8f4c879eb5cfbe282fc5b72ef91ddf3-234559853" # ANTIGA
-
-MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6572778228467438-012815-7995636b4be0f51ec60422f0069b396a-2210813103" # ANTIGA TESTE 
-
-#MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6307889355339219-070811-052b29ec7cd8b6761b3fd53128543c5f-61367856"
-############################Access Token PRD APP_USR-6307889355339219-070811-052b29ec7cd8b6761b3fd53128543c5f-61367856
-########## PUBLIC KEY PRD APP_USR-516092f3-91d4-4fe7-849b-55534ef996d2
-
-
-YOUTUBE_API_KEY = "AIzaSyAfNYAuhX5za5hQpZk3Dx5cesgGULWuVIE"
-YOUTUBE_VIDEO_ID = "Wb9nwzVqRZc"
+# Get API keys from settings (which now use environment variables)
+MERCADO_PAGO_ACCESS_TOKEN = settings.MERCADO_PAGO_ACCESS_TOKEN
+YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY')
+YOUTUBE_VIDEO_ID = "986va9daaQg"
 
 def home(request):
     return render(request, "index.html")
