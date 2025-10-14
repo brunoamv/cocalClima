@@ -20,9 +20,13 @@ services:
     networks:
       - proxy
     labels:
-
       - traefik.enable=true
       - traefik.http.routers.climacocal.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`) || Host(`${PRIVATE_DOMAIN}`)
+      - traefik.http.routers.climacocal.entrypoints=web
+      - traefik.http.routers.climacocal-secure.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`) || Host(`${PRIVATE_DOMAIN}`)
+      - traefik.http.routers.climacocal-secure.entrypoints=websecure
+      - traefik.http.routers.climacocal-secure.tls=true
+      - traefik.http.routers.climacocal-secure.tls.certresolver=letsencrypt
       - traefik.http.services.climacocal.loadbalancer.server.port=8000
 
   db:
