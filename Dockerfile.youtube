@@ -1,0 +1,30 @@
+FROM python:3.11-slim
+
+# Sistema
+RUN apt-get update && apt-get install -y cron git && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /youtube
+
+# Dependências
+COPY youtube/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Scripts
+COPY youtube/scripts /youtube/scripts
+RUN mkdir -p /youtube/scripts/logs
+
+# Git
+RUN git config --global user.email "automation@climacocal.com" && \
+    git config --global user.name "YouTube Automation"
+
+# Cron
+COPY youtube/crontab /etc/cron.d/youtube-automation
+RUN chmod 0644 /etc/cron.d/youtube-automation && crontab /etc/cron.d/youtube-automation
+
+# Entrypoint
+COPY youtube/entrypoint.sh /youtube/entrypoint.sh
+RUN chmod +x /youtube/entrypoint.sh
+
+VOLUME ["/youtube/scripts/logs", "/youtube/credentials"]
+
+ENTRYPOINT ["/youtube/entrypoint.sh"]

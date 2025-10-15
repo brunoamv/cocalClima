@@ -1,0 +1,32 @@
+FROM python:3.11-slim
+
+# Instalar dependências do sistema
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    curl \
+    iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /camera
+
+# Copiar e instalar dependências Python
+COPY camera/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar arquivos da aplicação
+COPY camera/scripts /camera/scripts
+COPY camera/templates /camera/templates
+COPY camera/static /camera/static
+COPY camera/entrypoint.sh /camera/entrypoint.sh
+
+# Criar diretórios necessários
+RUN mkdir -p /camera/logs
+
+# Definir permissões
+RUN chmod +x /camera/entrypoint.sh /camera/scripts/*.py
+
+# Expor porta do dashboard
+EXPOSE 8001
+
+# Entrypoint
+ENTRYPOINT ["./entrypoint.sh"]

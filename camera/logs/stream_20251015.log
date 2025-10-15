@@ -161,3 +161,13 @@
 2025-10-15 02:01:34,946 [    INFO] camera_stream: Stream parado
 2025-10-15 02:01:38,776 [    INFO] camera_stream: Iniciando stream normal: ffmpeg -y -re -rtsp_transport tcp -i rtsp://admin:CoraRosa@192.168.3.62:554/cam/realmonitor?channel=1&subtype=0 -c:v...
 2025-10-15 02:01:38,778 [    INFO] camera_stream: Stream normal iniciado com sucesso
+2025-10-15 02:08:53,752 [ WARNING] camera_stream: Ping para 192.168.3.62 falhou
+2025-10-15 02:08:53,752 [    INFO] camera_stream: Enviando alerta: ❌ Câmera Offline
+2025-10-15 02:08:54,587 [   ERROR] camera_stream: Erro ao enviar Telegram: 400 Client Error: Bad Request for url: https://api.telegram.org/bot8303490589:AAFESSnYGHJPTS5cQkHrgfsY8ieqWpjt9s8/sendMessage
+2025-10-15 02:08:58,145 [    INFO] camera_stream: Alerta email enviado
+2025-10-15 02:08:58,145 [    INFO] camera_stream: Câmera caiu, mudando para fallback
+2025-10-15 02:08:58,171 [ WARNING] camera_stream: FFmpeg: [flv @ 0x5646af271280] Failed to update header with correct duration.
+2025-10-15 02:08:58,171 [ WARNING] camera_stream: FFmpeg: [flv @ 0x5646af271280] Failed to update header with correct filesize.
+2025-10-15 02:08:58,210 [    INFO] camera_stream: Stream parado
+2025-10-15 02:09:02,048 [    INFO] camera_stream: Iniciando stream normal: ffmpeg -y -re -rtsp_transport tcp -i rtsp://admin:CoraRosa@192.168.3.62:554/cam/realmonitor?channel=1&subtype=0 -c:v...
+2025-10-15 02:09:02,050 [    INFO] camera_stream: Stream normal iniciado com sucesso
