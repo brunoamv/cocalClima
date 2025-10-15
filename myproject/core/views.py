@@ -10,7 +10,7 @@ from django.conf import settings
 # Get API keys from settings (which now use environment variables)
 MERCADO_PAGO_ACCESS_TOKEN = settings.MERCADO_PAGO_ACCESS_TOKEN
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY')
-YOUTUBE_VIDEO_ID = "986va9daaQg"
+YOUTUBE_VIDEO_ID = "fkyiB77M1V8"
 
 def home(request):
     return render(request, "index.html")
