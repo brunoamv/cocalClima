@@ -1,0 +1,9 @@
+logs/*.log
+static/offline.png
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache/

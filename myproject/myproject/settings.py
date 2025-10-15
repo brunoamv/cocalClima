@@ -10,24 +10,40 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+def get_env_variable(var_name, default=None):
+    try:
+        return os.environ[var_name]
+    except KeyError:
+        if default is not None:
+            return default
+        error_msg = f"Set the {var_name} environment variable"
+        raise ImproperlyConfigured(error_msg)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-0c5nlqopomq-h@6359!dqraj_lk56ta+tw^2!3=8t7^o&whfg#'
+SECRET_KEY = get_env_variable('DJANGO_SECRET_KEY', 'django-insecure-0c5nlqopomq-h@6359!dqraj_lk56ta+tw^2!3=8t7^o&whfg#')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = get_env_variable('DJANGO_DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ["www.climacocal.com.br","climacocal.com.br","0.0.0.0","*"]
+# Static files serving configuration
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
 
-CSRF_TRUSTED_ORIGINS = ["https://climacocal.com.br"]
+ALLOWED_HOSTS = get_env_variable('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+CSRF_TRUSTED_ORIGINS = [f"https://{host.strip()}" for host in get_env_variable('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')]
 
 
 
@@ -41,6 +57,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',    
     'core',
+    'streaming',
 ]
 
 MIDDLEWARE = [
@@ -134,19 +151,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-#### MERCADO PAGO TOKEN PROD  
-
-
-# MERCADO_PAGO_PUBLIC_KEY = "APP_USR-be972c03-4318-43e9-babd-f75049901af9"
-# MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-5215197145934497-010910-a8f4c879eb5cfbe282fc5b72ef91ddf3-234559853"
-
-#### MERCADO PAGO TOKEN TEST 
-# MERCADO_PAGO_PUBLIC_KEY = "TEST-0d280877-e061-4388-9db4-44c61292a524"
-# MERCADO_PAGO_ACCESS_TOKEN = "TEST-5215197145934497-010910-a25eee2c27f63d4fd1b7ed2601c28129-234559853"
-
-
-#### MERCADO PAGO TOKEN USER RosaTeste 
-MERCADO_PAGO_PUBLIC_KEY =  "APP_USR-5d72f011-96d8-4fb8-a131-02671b0601b4"
-MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-6572778228467438-012815-7995636b4be0f51ec60422f0069b396a-2210813103"
-
-# MERCADO_PAGO_ACCESS_TOKEN = 'TEST-5215197145934497-010910-a25eee2c27f63d4fd1b7ed2601c28129-234559853'
+# Mercado Pago Settings (from environment variables)
+MERCADO_PAGO_PUBLIC_KEY = get_env_variable('MERCADO_PAGO_PUBLIC_KEY')
+MERCADO_PAGO_ACCESS_TOKEN = get_env_variable('MERCADO_PAGO_ACCESS_TOKEN')

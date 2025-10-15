@@ -9,59 +9,152 @@
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    function checkYouTubeLive() {
-        fetch("/check-youtube-live/")
+    // Enhanced camera status check with new streaming API
+    function checkCameraStatus() {
+        fetch("/streaming/api/status/")
             .then(response => response.json())
             .then(data => {
                 let btn = document.getElementById("payBtn");
                 let msg = document.getElementById("statusMsg");
                 let btn2 = document.getElementById("payBtn2");
                 let msg2 = document.getElementById("statusMsg2");
-                if (data.live) {
+                
+                // Update UI based on access status
+                if (data.access_granted) {
                     btn.disabled = false;
-                    btn.textContent = "Participar do Evento";
-                    msg.textContent = "Transmissão ao vivo disponível!";
+                    btn.textContent = "Assistir Ao Vivo";
+                    msg.textContent = "✅ " + data.message;
                     btn2.disabled = false;
-                    btn2.textContent = "Participar do Evento";
-                    msg2.textContent = "Transmissão ao vivo disponível!";
+                    btn2.textContent = "Assistir Ao Vivo";
+                    msg2.textContent = "✅ " + data.message;
+                } else if (data.payment_status === "pending") {
+                    btn.disabled = false;
+                    btn.textContent = "Pagar para Assistir";
+                    msg.textContent = "💳 " + data.message;
+                    btn2.disabled = false;
+                    btn2.textContent = "Pagar para Assistir";
+                    msg2.textContent = "💳 " + data.message;
                 } else {
                     btn.disabled = true;
-                    btn.textContent = "Evento ainda não começou";
-                    msg.textContent = "A transmissão ainda não começou. Aguarde.";
+                    btn.textContent = "Câmera Indisponível";
+                    msg.textContent = "📷 " + data.message;
                     btn2.disabled = true;
-                    btn2.textContent = "Evento ainda não começou";
-                    msg2.textContent = "A transmissão ainda não começou. Aguarde.";
+                    btn2.textContent = "Câmera Indisponível";
+                    msg2.textContent = "📷 " + data.message;
                 }
+                
+                // Store stream URL for later use
+                if (data.stream_url) {
+                    window.streamUrl = data.stream_url;
+                }
+            })
+            .catch(error => {
+                console.error('Error checking camera status:', error);
+                let btn = document.getElementById("payBtn");
+                let msg = document.getElementById("statusMsg");
+                btn.disabled = true;
+                btn.textContent = "Erro de Conexão";
+                msg.textContent = "Erro ao verificar status da câmera";
+            });
+    }
+    
+    // Legacy YouTube check (keeping for backward compatibility)
+    function checkYouTubeLive() {
+        fetch("/check-youtube-live/")
+            .then(response => response.json())
+            .then(data => {
+                // This is now deprecated - use checkCameraStatus instead
+                console.warn('checkYouTubeLive is deprecated, use checkCameraStatus');
             });
     }
     
     
-    document.getElementById("payBtn").addEventListener("click", function () {
-        fetch("/create-payment/")
+    // Enhanced payment button click handler
+    function handlePaymentClick() {
+        // Check current status first
+        fetch("/streaming/api/status/")
             .then(response => response.json())
             .then(data => {
-                if (data.init_point) {
-                    window.location.href = data.init_point;
+                if (data.access_granted) {
+                    // User has access, show stream
+                    showVideoStream(data.stream_url);
+                } else if (data.payment_status === "pending") {
+                    // User needs to pay
+                    fetch("/create-payment/")
+                        .then(response => response.json())
+                        .then(paymentData => {
+                            if (paymentData.init_point) {
+                                window.location.href = paymentData.init_point;
+                            } else {
+                                alert("Erro ao processar pagamento.");
+                            }
+                        });
                 } else {
-                    alert("Erro ao processar pagamento.");
+                    alert(data.message);
                 }
+            })
+            .catch(error => {
+                console.error('Error handling payment click:', error);
+                alert("Erro de conexão. Tente novamente.");
             });
-    });
+    }
     
-    document.getElementById("payBtn2").addEventListener("click", function () {
-      fetch("/create-payment/")
-          .then(response => response.json())
-          .then(data => {
-              if (data.init_point) {
-                  window.location.href = data.init_point;
-              } else {
-                  alert("Erro ao processar pagamento.");
-              }
-          });
-    });
+    // Show HLS video stream
+    function showVideoStream(streamUrl) {
+        // Create video player modal
+        const modal = document.createElement('div');
+        modal.id = 'videoModal';
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 1000; display: flex;
+            align-items: center; justify-content: center;
+        `;
+        
+        const videoContainer = document.createElement('div');
+        videoContainer.style.cssText = `
+            position: relative; width: 90%; max-width: 800px;
+            background: black; border-radius: 10px; overflow: hidden;
+        `;
+        
+        const video = document.createElement('video');
+        video.style.cssText = 'width: 100%; height: auto;';
+        video.controls = true;
+        video.autoplay = true;
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '✕';
+        closeBtn.style.cssText = `
+            position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.8);
+            border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;
+            font-size: 16px; z-index: 1001;
+        `;
+        closeBtn.onclick = () => document.body.removeChild(modal);
+        
+        // Load HLS stream
+        if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(streamUrl);
+            hls.attachMedia(video);
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Safari native HLS support
+            video.src = streamUrl;
+        } else {
+            alert('Seu navegador não suporta streaming HLS.');
+            return;
+        }
+        
+        videoContainer.appendChild(video);
+        videoContainer.appendChild(closeBtn);
+        modal.appendChild(videoContainer);
+        document.body.appendChild(modal);
+    }
 
-    checkYouTubeLive();
-    setInterval(checkYouTubeLive, 30000);
+    document.getElementById("payBtn").addEventListener("click", handlePaymentClick);
+    document.getElementById("payBtn2").addEventListener("click", handlePaymentClick);
+
+    // Use new camera status check instead of YouTube
+    checkCameraStatus();
+    setInterval(checkCameraStatus, 15000); // Check every 15 seconds
 
 const iCIDADE = "3137"; // Replace with your city ID
 const iTOKEN = "546659d2c8b489261f185e4e10b21d3c"; // Replace with your token

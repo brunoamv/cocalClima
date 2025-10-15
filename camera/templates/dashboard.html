@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClimaCocal - Camera Stream Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00ff88, #00aaff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #cccccc;
+            font-size: 1.1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+        }
+
+        .card h3 {
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        .status-online {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        .status-offline {
+            background: #ff4757;
+            box-shadow: 0 0 10px #ff4757;
+        }
+
+        .status-warning {
+            background: #ffa502;
+            box-shadow: 0 0 10px #ffa502;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .metric-label {
+            color: #cccccc;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00ff88, #00aaff);
+            color: #ffffff;
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #ffa502, #ff6348);
+            color: #ffffff;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+            color: #ffffff;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .logs-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .log-line {
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .youtube-link {
+            display: inline-block;
+            background: linear-gradient(45deg, #ff0000, #cc0000);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .youtube-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #cccccc;
+        }
+
+        .spinner {
+            border: 4px solid #333;
+            border-top: 4px solid #00ff88;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+        }
+
+        .alert-error {
+            background: rgba(255, 71, 87, 0.2);
+            border: 1px solid #ff4757;
+        }
+
+        .alert-warning {
+            background: rgba(255, 165, 2, 0.2);
+            border: 1px solid #ffa502;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎥 ClimaCocal Stream</h1>
+            <p>Dashboard de Monitoramento da Câmera IP</p>
+        </div>
+
+        <div id="alerts"></div>
+
+        <div class="grid">
+            <!-- Status da Câmera -->
+            <div class="card">
+                <h3>
+                    📷 Status da Câmera
+                    <span id="camera-status" class="status-indicator status-offline"></span>
+                </h3>
+                <div class="metric">
+                    <span class="metric-label">IP:</span>
+                    <span class="metric-value" id="camera-ip">Carregando...</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Resolução:</span>
+                    <span class="metric-value" id="camera-resolution">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">FPS:</span>
+                    <span class="metric-value" id="camera-fps">-</span>
+                </div>
+                <div class="buttons">
+                    <button class="btn btn-primary" onclick="testCamera()">Testar Câmera</button>
+                </div>
+            </div>
+
+            <!-- Status do Stream -->
+            <div class="card">
+                <h3>
+                    🎬 Status do Stream
+                    <span id="stream-status" class="status-indicator status-offline"></span>
+                </h3>
+                <div class="metric">
+                    <span class="metric-label">Modo:</span>
+                    <span class="metric-value" id="stream-mode">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Uptime:</span>
+                    <span class="metric-value" id="stream-uptime">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Reconexões:</span>
+                    <span class="metric-value" id="stream-reconnects">-</span>
+                </div>
+                <div class="buttons">
+                    <button class="btn btn-primary" onclick="startStream()">Iniciar</button>
+                    <button class="btn btn-warning" onclick="restartStream()">Reiniciar</button>
+                    <button class="btn btn-danger" onclick="stopStream()">Parar</button>
+                </div>
+            </div>
+
+            <!-- YouTube -->
+            <div class="card">
+                <h3>📺 YouTube Live</h3>
+                <div class="metric">
+                    <span class="metric-label">Video ID:</span>
+                    <span class="metric-value" id="youtube-id">-</span>
+                </div>
+                <div id="youtube-link-container">
+                    <!-- Link será inserido aqui -->
+                </div>
+            </div>
+
+            <!-- Sistema -->
+            <div class="card">
+                <h3>⚙️ Sistema</h3>
+                <div class="metric">
+                    <span class="metric-label">FFmpeg:</span>
+                    <span class="metric-value" id="system-ffmpeg">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Serviços:</span>
+                    <span class="metric-value" id="system-services">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Última Atualização:</span>
+                    <span class="metric-value" id="last-update">-</span>
+                </div>
+                <div class="buttons">
+                    <button class="btn btn-primary" onclick="testAlerts()">Testar Alertas</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs -->
+        <div class="card">
+            <h3>📝 Logs do Sistema</h3>
+            <div class="logs-container" id="logs">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Carregando logs...
+                </div>
+            </div>
+            <div class="buttons">
+                <button class="btn btn-primary" onclick="refreshLogs()">Atualizar Logs</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isLoading = false;
+
+        function showAlert(message, type = 'success') {
+            const alertsContainer = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            alertsContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        async function fetchStatus() {
+            if (isLoading) return;
+            isLoading = true;
+
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                updateUI(data);
+            } catch (error) {
+                console.error('Erro ao buscar status:', error);
+                showAlert('Erro ao conectar com o servidor', 'error');
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        function updateUI(data) {
+            // Camera Status
+            const cameraStatus = document.getElementById('camera-status');
+            const cameraOnline = data.camera.online;
+            
+            cameraStatus.className = `status-indicator ${cameraOnline ? 'status-online' : 'status-offline'}`;
+            document.getElementById('camera-ip').textContent = data.camera.ip;
+            
+            if (data.camera.info) {
+                document.getElementById('camera-resolution').textContent = data.camera.info.resolution;
+                document.getElementById('camera-fps').textContent = data.camera.info.fps;
+            } else {
+                document.getElementById('camera-resolution').textContent = '-';
+                document.getElementById('camera-fps').textContent = '-';
+            }
+
+            // Stream Status
+            const streamStatus = document.getElementById('stream-status');
+            const streamActive = data.stream.active;
+            
+            streamStatus.className = `status-indicator ${streamActive ? 'status-online' : 'status-offline'}`;
+            document.getElementById('stream-mode').textContent = data.stream.mode;
+            document.getElementById('stream-uptime').textContent = data.stream.uptime;
+            document.getElementById('stream-reconnects').textContent = data.stream.reconnect_attempts;
+
+            // YouTube
+            document.getElementById('youtube-id').textContent = data.youtube.video_id || '-';
+            
+            const linkContainer = document.getElementById('youtube-link-container');
+            if (data.youtube.url) {
+                linkContainer.innerHTML = `<a href="${data.youtube.url}" target="_blank" class="youtube-link">🔴 Assistir no YouTube</a>`;
+            } else {
+                linkContainer.innerHTML = '<p style="color: #666;">Link não disponível</p>';
+            }
+
+            // System
+            document.getElementById('system-ffmpeg').textContent = data.system.ffmpeg_available ? '✅ Disponível' : '❌ Indisponível';
+            document.getElementById('system-services').textContent = data.system.services_initialized ? '✅ Inicializados' : '❌ Não inicializados';
+            document.getElementById('last-update').textContent = new Date(data.timestamp).toLocaleString('pt-BR');
+        }
+
+        async function startStream() {
+            try {
+                const response = await fetch('/api/start', { method: 'POST' });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert(data.message, 'success');
+                } else {
+                    showAlert(data.error, 'error');
+                }
+                
+                setTimeout(fetchStatus, 2000);
+            } catch (error) {
+                showAlert('Erro ao iniciar stream', 'error');
+            }
+        }
+
+        async function stopStream() {
+            try {
+                const response = await fetch('/api/stop', { method: 'POST' });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert(data.message, 'success');
+                } else {
+                    showAlert(data.error, 'error');
+                }
+                
+                setTimeout(fetchStatus, 2000);
+            } catch (error) {
+                showAlert('Erro ao parar stream', 'error');
+            }
+        }
+
+        async function restartStream() {
+            try {
+                const response = await fetch('/api/restart', { method: 'POST' });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert(data.message, 'success');
+                } else {
+                    showAlert(data.error, 'error');
+                }
+                
+                setTimeout(fetchStatus, 2000);
+            } catch (error) {
+                showAlert('Erro ao reiniciar stream', 'error');
+            }
+        }
+
+        async function testCamera() {
+            try {
+                showAlert('Testando conectividade da câmera...', 'warning');
+                
+                const response = await fetch('/api/camera-test');
+                const data = await response.json();
+                
+                if (data.overall) {
+                    showAlert('✅ Câmera conectada e funcionando', 'success');
+                } else {
+                    showAlert(`❌ Problemas na câmera - Ping: ${data.ping ? '✅' : '❌'}, Socket: ${data.socket ? '✅' : '❌'}, RTSP: ${data.rtsp ? '✅' : '❌'}`, 'error');
+                }
+            } catch (error) {
+                showAlert('Erro ao testar câmera', 'error');
+            }
+        }
+
+        async function testAlerts() {
+            try {
+                showAlert('Testando sistema de alertas...', 'warning');
+                
+                const response = await fetch('/api/test-alerts', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.overall) {
+                    showAlert(`✅ Alertas funcionando - Telegram: ${data.telegram.ok ? '✅' : '❌'}, Email: ${data.email.ok ? '✅' : '❌'}`, 'success');
+                } else {
+                    showAlert('❌ Problemas no sistema de alertas', 'error');
+                }
+            } catch (error) {
+                showAlert('Erro ao testar alertas', 'error');
+            }
+        }
+
+        async function refreshLogs() {
+            try {
+                const response = await fetch('/api/logs');
+                const data = await response.json();
+                
+                const logsContainer = document.getElementById('logs');
+                
+                if (data.logs && data.logs.length > 0) {
+                    logsContainer.innerHTML = data.logs.map(log => `<div class="log-line">${log}</div>`).join('');
+                    // Scroll para o final
+                    logsContainer.scrollTop = logsContainer.scrollHeight;
+                } else {
+                    logsContainer.innerHTML = '<div class="log-line">Nenhum log encontrado</div>';
+                }
+            } catch (error) {
+                showAlert('Erro ao carregar logs', 'error');
+            }
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchStatus();
+            refreshLogs();
+            
+            // Atualizar a cada 5 segundos
+            setInterval(fetchStatus, 5000);
+            
+            // Atualizar logs a cada 30 segundos
+            setInterval(refreshLogs, 30000);
+        });
+    </script>
+</body>
+</html>
