@@ -19,13 +19,17 @@ from django.conf.urls.static import static
 
 from django.urls import path, include
 
-from core.views import create_payment, payment_webhook, check_payment_status, home, payment_success ,payment_failure, payment_failure_safe , get_weather , check_youtube_live , get_stream_url, camera_stream, camera_segment, camera_status_api 
+from core.views import create_payment, payment_webhook, check_payment_status, home, payment_success ,payment_failure, payment_failure_safe , get_weather , check_youtube_live , get_stream_url, camera_stream, camera_segment, camera_status_api, test_payment_success, test_payment_direct 
 urlpatterns = [
     path("", home, name="home"),
     path("create-payment/", create_payment, name="create_payment"),
     path("payment-success/", payment_success, name="payment_success"),
     path("payment-failure/", payment_failure, name="payment_failure"),
     path("payment-failure-safe/", payment_failure_safe, name="payment_failure_safe"),
+    
+    # Test endpoints for development
+    path("test-payment-success/", test_payment_success, name="test_payment_success"),
+    path("test-payment-direct/", test_payment_direct, name="test_payment_direct"),
     path("webhook/", payment_webhook, name="webhook"),
     path("check-payment/", check_payment_status, name="check_payment"),
     path("weather/", get_weather, name="get_weather"),

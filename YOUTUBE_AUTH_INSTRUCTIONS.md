@@ -30,6 +30,8 @@ O script `generate_youtube_token.py` falha porque faltam dependências Python no
 ```json
 {
   "token": "ACCESS_TOKEN_AQUI",
+
+  
   "refresh_token": "REFRESH_TOKEN_AQUI",
   "token_uri": "https://oauth2.googleapis.com/token",
   "client_id": "SEU_CLIENT_ID",

@@ -16,11 +16,15 @@ services:
     labels:
       - traefik.enable=true
       # HTTP router with redirect to HTTPS
-      - traefik.http.routers.climacocal.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`) || Host(`${PRIVATE_DOMAIN}`)
+      - traefik.http.routers.climacocal.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`)
       - traefik.http.routers.climacocal.entrypoints=web
       - traefik.http.routers.climacocal.middlewares=redirect-to-https
-      # HTTPS router
-      - traefik.http.routers.climacocal-secure.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`) || Host(`${PRIVATE_DOMAIN}`)
+      # Local HTTP router (no HTTPS redirect for local domain)
+      - traefik.http.routers.climacocal-local.rule=Host(`${PRIVATE_DOMAIN}`)
+      - traefik.http.routers.climacocal-local.entrypoints=web
+      - traefik.http.routers.climacocal-local.service=climacocal
+      # HTTPS router (only for public domains)
+      - traefik.http.routers.climacocal-secure.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`)
       - traefik.http.routers.climacocal-secure.entrypoints=websecure
       - traefik.http.routers.climacocal-secure.tls=true
       - traefik.http.routers.climacocal-secure.tls.certresolver=letsencrypt

@@ -97,6 +97,30 @@ def payment_success(request):
     cache.set("payment_status", "approved", timeout=600)
     return render(request, "payment_success.html")
 
+def test_payment_success(request):
+    """
+    Endpoint de teste para simular pagamento aprovado
+    Permite testar a página de sucesso sem passar pelo MercadoPago
+    """
+    # Simula estado de pagamento aprovado no cache
+    cache.set("payment_status", "approved", timeout=600)
+    return render(request, "payment_success.html")
+
+def test_payment_direct(request):
+    """
+    Acesso direto à página de teste com estado de pagamento válido
+    Para testes de desenvolvimento da câmera/streaming
+    """
+    # Define estado de pagamento aprovado
+    cache.set("payment_status", "approved", timeout=600)
+    
+    # Retorna página com indicador de modo teste
+    context = {
+        'test_mode': True,
+        'message': 'MODO TESTE - Pagamento simulado'
+    }
+    return render(request, "payment_success.html", context)
+
 def payment_failure(request):
     # Store that the user has failure paid
     cache.set("payment_status", "failure", timeout=600)
