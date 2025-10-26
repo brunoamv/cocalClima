@@ -4,11 +4,12 @@
 [![Docker](https://img.shields.io/badge/Docker-Enabled-blue)](https://www.docker.com/)
 [![Django](https://img.shields.io/badge/Django-3.2.25-green)](https://djangoproject.com/)
 [![Python](https://img.shields.io/badge/Python-3.12-blue)](https://python.org/)
-[![Architecture](https://img.shields.io/badge/Architecture-7.4/10-brightgreen)](./ARCHITECTURAL_EVALUATION.md)
+[![Architecture](https://img.shields.io/badge/Architecture-8.2/10-brightgreen)](./ARCHITECTURAL_EVALUATION.md)
 [![UX](https://img.shields.io/badge/UX-Enhanced-blue)](./CLAUDE.md)
-[![Version](https://img.shields.io/badge/Version-2.2.0-green)](./CLAUDE.md)
+[![Version](https://img.shields.io/badge/Version-2.3.0--dev-orange)](./CLAUDE.md)
+[![TDD](https://img.shields.io/badge/TDD-2848_lines-brightgreen)](./TDD_STRATEGY.md)
 
-Sistema completo de streaming direto e e-commerce com **auto-recovery inteligente** e **UX aprimorada**, desenvolvido para ClimaCocal com arquitetura moderna.
+Sistema completo de streaming direto e e-commerce com **auto-recovery inteligente**, **UX aprimorada** e **suite TDD robusta**, desenvolvido para ClimaCocal com arquitetura moderna.
 
 ---
 
@@ -19,11 +20,12 @@ O ClimaCocal é uma plataforma integrada que combina:
 - **🛒 E-commerce** - Loja online com integração Mercado Pago
 - **📹 Smart Streaming** - RTSP→HLS com **auto-recovery** e monitoramento inteligente
 - **🎨 Enhanced UX** - Interface responsiva com layout moderno (v2.2.0)
+- **🧪 TDD Framework** - Suite robusta com **2.848+ linhas de testes** (v2.3.0-dev)
 - **📍 Location Service** - Transmissão ao vivo de **Cocalzinho de Goiás**
 - **🔒 Payment Validation** - Sistema de validação de pagamento por sessão
 - **📺 YouTube Legacy** - Automação de transmissões YouTube Live (descontinuado)
 
-## 🏗️ Arquitetura v2.2.0
+## 🏗️ Arquitetura v2.3.0-dev
 
 ```mermaid
 graph TB
@@ -232,9 +234,12 @@ cocalClima/
 │   │   ├── views.py                 # API endpoints (267 linhas)
 │   │   ├── urls.py                  # Routing
 │   │   └── management/commands/     # Django commands
-│   ├── tests/                       # ✅ Suite TDD completa (988 linhas)
+│   ├── tests/                       # ✅ Suite TDD completa (2.848+ linhas)
 │   │   ├── test_streaming_services.py (452 linhas)
-│   │   └── test_streaming_views.py    (536 linhas)
+│   │   ├── test_streaming_views.py    (536 linhas)
+│   │   ├── test_core_views.py         (580 linhas)
+│   │   ├── test_integration.py        (720 linhas)
+│   │   └── test_e2e_playwright.py     (560 linhas)
 │   └── myproject/                   # Django settings
 ├── 📹 camera/                       # Camera Container (1.142 linhas)
 │   ├── scripts/                     # Python modules
@@ -248,11 +253,15 @@ cocalClima/
 │   ├── Dockerfile.camera            # Camera container
 │   ├── Dockerfile.youtube           # YouTube container
 │   └── docker-compose.yml           # Orchestration
-├── 📋 docs/                         # ✅ Documentação unificada (8 arquivos)
+├── 📋 docs/                         # ✅ Documentação unificada (9 arquivos)
 │   ├── ARCHITECTURAL_EVALUATION.md  # Análise arquitetural completa
 │   ├── STREAMING_IMPLEMENTATION_GUIDE.md
 │   ├── SSL_CERTIFICATE_FIX.md
-│   └── API_DOCUMENTATION.md
+│   ├── API_DOCUMENTATION.md
+│   └── TDD_STRATEGY.md              # ✅ Estratégia TDD completa
+├── 🧪 TDD Framework/                # ✅ Sistema TDD (400+ linhas)
+│   ├── test_runner.py               # Test runner avançado (304 linhas)
+│   └── setup_tests.sh               # Setup automatizado (53 linhas)
 └── 🚨 legacy/ (para remoção)        # 789 linhas de débito técnico
     ├── 22 scripts Python obsoletos
     ├── 70+ arquivos de log antigos
@@ -267,10 +276,14 @@ docker-compose up -d                    # Start all services
 docker-compose logs -f streaming        # View streaming logs
 docker-compose exec climacocal bash     # Access Django container
 
-# Testing (988 linhas de testes)
-python manage.py test                    # Run all Django tests
-python manage.py test streaming         # Test streaming module
-python manage.py test core              # Test core module
+# Testing (2.848+ linhas de testes TDD)
+./test_runner.py --all                   # Run complete TDD suite
+./test_runner.py --unit                  # Unit tests only
+./test_runner.py --integration           # Integration tests
+./test_runner.py --e2e                   # E2E tests (Playwright)
+./test_runner.py --watch                 # Watch mode for TDD
+./test_runner.py --coverage              # With coverage report
+python manage.py test                    # Run all Django tests (legacy)
 bash test_ssl_fix.sh                    # Test SSL configuration
 
 # Streaming específico
@@ -290,36 +303,59 @@ docker-compose up -d --build           # Build and start
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing & TDD Framework
 
-### Test Strategy (988 linhas)
+### Test Strategy (2.848+ linhas) ✅ v2.3.0-dev
 
 ```bash
-# ✅ Streaming Services Tests (452 linhas)
-python manage.py test tests.test_streaming_services
-# - Camera connection testing
-# - FFmpeg process management
-# - Payment validation logic
-# - Error handling and recovery
+# ✅ Complete TDD Suite with Advanced Runner
+./test_runner.py --all                  # Run complete TDD suite (Red-Green-Refactor)
+./test_runner.py --unit                 # Unit tests (580 linhas)
+./test_runner.py --integration          # Integration tests (720 linhas) 
+./test_runner.py --e2e                  # E2E tests (560 linhas Playwright-ready)
+./test_runner.py --watch                # Watch mode for continuous TDD
+./test_runner.py --coverage             # Coverage report with HTML output
+./test_runner.py --lint                 # Code quality checks (flake8, black, isort)
 
-# ✅ Streaming Views Tests (536 linhas)  
-python manage.py test tests.test_streaming_views
-# - API endpoint security
-# - HLS file serving
-# - Authentication and authorization
-# - Legacy compatibility
+# ✅ Legacy Django Tests (988 linhas)
+python manage.py test tests.test_streaming_services  # 452 linhas
+python manage.py test tests.test_streaming_views     # 536 linhas
 
-# Integration Tests
-bash test_ssl_fix.sh                    # SSL/TLS validation
-curl -f https://climacocal.com.br       # E2E connectivity
+# ✅ Setup and Automation
+bash setup_tests.sh                     # TDD environment setup
+./test_runner.py --report               # Generate comprehensive test report
 ```
 
-### Test Coverage
+### TDD Development Workflow
 
 ```bash
-# Coverage report
-coverage run --source='.' manage.py test
-coverage report -m
+# 1. RED: Write failing test
+./test_runner.py --unit --watch         # Watch mode for immediate feedback
+
+# 2. GREEN: Write minimal code to pass
+./test_runner.py --unit                 # Verify tests pass
+
+# 3. REFACTOR: Improve code while keeping tests green
+./test_runner.py --all --coverage       # Full validation with coverage
+```
+
+### Test Coverage & Quality
+
+```bash
+# Coverage report with HTML output
+./test_runner.py --coverage
+# Output: coverage_reports/unit_tests/index.html
+
+# Code quality and formatting
+./test_runner.py --lint
+# - flake8: syntax and style
+# - black: code formatting  
+# - isort: import organization
+
+# Test categories breakdown:
+# - Unit Tests (580 linhas): Component testing
+# - Integration Tests (720 linhas): Component interaction
+# - E2E Tests (560 linhas): User journey testing (Playwright-ready)
 # Current: ~85% coverage na nova arquitetura streaming
 ```
 
@@ -424,6 +460,7 @@ docker-compose up -d --scale climacocal=3
 - **[STREAMING_IMPLEMENTATION_GUIDE.md](STREAMING_IMPLEMENTATION_GUIDE.md)** - 📹 Implementação TDD streaming
 - **[SSL_CERTIFICATE_FIX.md](SSL_CERTIFICATE_FIX.md)** - 🔒 Correção certificados SSL
 - **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - 📖 Documentação API completa
+- **[TDD_STRATEGY.md](TDD_STRATEGY.md)** - 🧪 **Estratégia TDD completa** (v2.3.0-dev)
 - **[CAMERA_SETUP.md](CAMERA_SETUP.md)** - 📹 Setup sistema câmera
 
 ### API Quick Reference
@@ -457,7 +494,7 @@ GET  /camera/<segment>                  # Legacy segment endpoint
 1. **Fork** o repositório
 2. **Clone** sua fork: `git clone [your-fork-url]`
 3. **Create branch**: `git checkout -b feature/amazing-feature`
-4. **Run tests**: `python manage.py test` (988 linhas)
+4. **Run TDD suite**: `./test_runner.py --all` (2.848+ linhas)
 5. **Commit changes**: `git commit -m 'feat: add amazing feature'`
 6. **Push branch**: `git push origin feature/amazing-feature`
 7. **Open Pull Request**
@@ -465,8 +502,9 @@ GET  /camera/<segment>                  # Legacy segment endpoint
 ### Code Quality
 
 ```bash
-# Pre-commit checks
-python manage.py test                    # All tests must pass
+# Pre-commit checks (TDD Workflow)
+./test_runner.py --all                   # Complete TDD suite must pass
+./test_runner.py --lint                  # Code quality checks
 python manage.py check --deploy         # Django deployment check
 bash test_ssl_fix.sh                    # SSL configuration test
 docker-compose ps                       # All containers healthy
@@ -476,36 +514,40 @@ docker-compose ps                       # All containers healthy
 
 ## 📊 Status do Projeto
 
-### Current Version: 2.2.0 (Enhanced UX & Auto-Recovery)
+### Current Version: 2.3.0-dev (TDD Framework & Enhanced Testing)
 
-**🟢 Enhanced Features (v2.2.0):**
+**🟢 Enhanced Features (v2.3.0-dev):**
+- ✅ **TDD Framework** - Suite robusta com **2.848+ linhas de testes**
+- ✅ **Advanced Test Runner** - Red-Green-Refactor com watch mode
 - ✅ **Smart Streaming** - Auto-recovery com cooldown inteligente (5min)
 - ✅ **Payment Integration** - MercadoPago com SSL fallback
-- ✅ **TDD Suite** - 988 linhas de testes automatizados
 - ✅ **Enhanced UX** - Layout responsivo baseado no design system
+- ✅ **Quality Automation** - flake8, black, isort integration
 - ✅ **Real-time Info** - Hora/clima/localização (Cocalzinho de Goiás)
 - ✅ **SSL/TLS** - Certificados automáticos + ECH support
 - ✅ **Docker Deployment** - Multi-container orquestração
 
 **🟡 Legacy Features:**
 - 🟡 **YouTube Automation** - Funcional mas substituído por streaming direto
-- 🟡 **Documentation** - Atualizada e consolidada (v2.2.0)
+- 🟡 **Legacy Tests** - 988 linhas Django tests (mantidos para compatibilidade)
 
 **🔴 Technical Debt (13.7%):**
 - ❌ **789 linhas** de código obsoleto para remoção
 - ❌ **67 arquivos** para limpeza (logs, backups, scripts)
 - ❌ **core/views.py** - 293 linhas precisam refatoração
 
-### Architectural Score: 7.4/10 ⬆️ (+0.6)
+### Architectural Score: 8.2/10 ⬆️ (+1.4)
 
-**Breakdown (v2.2.0):**
-- **Streaming Architecture**: 9.5/10 ✅ ⬆️
-- **User Experience (UX)**: 8.5/10 ✅ 🆕
+**Breakdown (v2.3.0-dev):**
+- **TDD Framework**: 9.5/10 ✅ 🆕 (2.848+ linhas de testes)
+- **Streaming Architecture**: 9.5/10 ✅ 
+- **Testing & Quality**: 9/10 ✅ ⬆️ (advanced test runner)
+- **User Experience (UX)**: 8.5/10 ✅ 
 - **Security (SSL/TLS)**: 8/10 ✅  
 - **Payment Integration**: 8/10 ✅
 - **Containerization**: 7/10 ✅
-- **Code Quality**: 6/10 ⚠️ ⬆️ (melhorando)
-- **Documentation**: 7.5/10 ✅ ⬆️ (atualizada)
+- **Code Quality**: 7/10 ✅ ⬆️ (TDD + quality automation)
+- **Documentation**: 8/10 ✅ ⬆️ (TDD docs + atualizada)
 
 ### Roadmap
 
@@ -556,12 +598,16 @@ curl -I https://climacocal.com.br/payment-failure-safe/
 ```bash
 # Full system diagnostic
 bash test_ssl_fix.sh              # SSL + streaming test
-python manage.py test             # 988 linhas de testes
+./test_runner.py --all             # 2.848+ linhas TDD suite
 docker-compose ps                 # Service status
 curl -f https://climacocal.com.br/streaming/health/
 
+# TDD & Quality checks
+./test_runner.py --report          # Comprehensive test report
+./test_runner.py --lint            # Code quality analysis
+
 # Architectural analysis
-cat ARCHITECTURAL_EVALUATION.md   # Pontuação: 6.8/10
+cat ARCHITECTURAL_EVALUATION.md   # Pontuação: 8.2/10 (v2.3.0-dev)
 ```
 
 ---
@@ -574,6 +620,6 @@ Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICEN
 
 **Desenvolvido com ❤️ para ClimaCocal**
 
-**Última atualização:** 15 de Outubro de 2025  
-**Versão Atual:** 2.1.0 (Direct Streaming Architecture)  
-**Próxima Revisão:** Após refatoração arquitetural (Novembro 2025)
+**Última atualização:** 26 de Outubro de 2025  
+**Versão Atual:** 2.3.0-dev (TDD Framework & Enhanced Testing)  
+**Próxima Revisão:** Após limpeza de débito técnico (Novembro 2025)

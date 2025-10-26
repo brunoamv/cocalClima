@@ -4,6 +4,8 @@
 
 Este documento define a estratégia completa de **Test-Driven Development (TDD)** para o ClimaCocal, fornecendo uma base sólida para desenvolvimento futuro com qualidade e confiabilidade.
 
+**📊 Status da Suite TDD**: **2.848+ linhas de testes** implementadas com advanced test runner e quality automation (v2.3.0-dev).
+
 ---
 
 ## 🎯 Filosofia TDD
@@ -38,15 +40,16 @@ Este documento define a estratégia completa de **Test-Driven Development (TDD)*
 ### **Estrutura de Arquivos**
 ```
 myproject/
-├── tests/
+├── tests/                          # 📊 Suite TDD Completa (2.848+ linhas)
 │   ├── __init__.py                 # Test suite documentation
-│   ├── test_core_views.py          # Core views unit tests
-│   ├── test_streaming_services.py  # Streaming services unit tests
-│   ├── test_streaming_views.py     # Streaming views unit tests
-│   ├── test_integration.py         # Integration tests
-│   └── test_e2e_playwright.py      # E2E tests with Playwright
+│   ├── test_core_views.py          # Core views unit tests (580 linhas)
+│   ├── test_streaming_services.py  # Streaming services unit tests (452 linhas)
+│   ├── test_streaming_views.py     # Streaming views unit tests (536 linhas)
+│   ├── test_integration.py         # Integration tests (720 linhas)
+│   └── test_e2e_playwright.py      # E2E tests with Playwright (560 linhas)
 ├── coverage_reports/               # Coverage HTML reports
-└── test_runner.py                  # Advanced test automation
+├── test_runner.py                  # Advanced test automation (304 linhas)
+└── setup_tests.sh                  # TDD environment setup (53 linhas)
 ```
 
 ---
