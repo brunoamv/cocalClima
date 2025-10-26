@@ -2,37 +2,7 @@ version: '3.8'
 
 services:
 
-  nginx:
-    image: nginx:alpine
-    container_name: climacocal_nginx
-    restart: always
-    volumes:
-      - ./nginx_static.conf:/etc/nginx/conf.d/default.conf
-      - climacocal_static_volume:/app/staticfiles:ro
-    depends_on:
-      - climacocal
-    networks:
-      - proxy
-    labels:
-      - traefik.enable=true
-      # HTTP router with redirect to HTTPS
-      - traefik.http.routers.climacocal.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`)
-      - traefik.http.routers.climacocal.entrypoints=web
-      - traefik.http.routers.climacocal.middlewares=redirect-to-https
-      # Local HTTP router (no HTTPS redirect for local domain)
-      - traefik.http.routers.climacocal-local.rule=Host(`${PRIVATE_DOMAIN}`)
-      - traefik.http.routers.climacocal-local.entrypoints=web
-      - traefik.http.routers.climacocal-local.service=climacocal
-      # HTTPS router (only for public domains)
-      - traefik.http.routers.climacocal-secure.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`)
-      - traefik.http.routers.climacocal-secure.entrypoints=websecure
-      - traefik.http.routers.climacocal-secure.tls=true
-      - traefik.http.routers.climacocal-secure.tls.certresolver=letsencrypt
-      # Service
-      - traefik.http.services.climacocal.loadbalancer.server.port=80
-      # Middleware for HTTPS redirect
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+  # nginx removido - Django serve tudo via Traefik
 
   climacocal:
     build:
@@ -46,11 +16,38 @@ services:
       - ./myproject:/app
       - ./requirements.txt:/app/requirements.txt
       - climacocal_static_volume:/app/staticfiles
+      - ./camera_stream:/app/camera_stream
     command: >
       sh -c "python manage.py collectstatic --noinput && \
              gunicorn --bind 0.0.0.0:8000 myproject.wsgi:application"
     networks:
       - proxy
+    labels:
+      - traefik.enable=true
+      # HTTP router with redirect to HTTPS
+      - traefik.http.routers.climacocal.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`)
+      - traefik.http.routers.climacocal.entrypoints=web
+      - traefik.http.routers.climacocal.middlewares=redirect-to-https
+      # Local HTTP router (no HTTPS redirect for local domain)
+      - traefik.http.routers.climacocal-local.rule=Host(`${PRIVATE_DOMAIN}`)
+      - traefik.http.routers.climacocal-local.entrypoints=web
+      - traefik.http.routers.climacocal-local.priority=100
+      - traefik.http.routers.climacocal-local.service=climacocal
+      # HTTPS router (only for public domains)
+      - traefik.http.routers.climacocal-secure.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`)
+      - traefik.http.routers.climacocal-secure.entrypoints=websecure
+      - traefik.http.routers.climacocal-secure.tls=true
+      - traefik.http.routers.climacocal-secure.tls.certresolver=letsencrypt
+      # Local HTTPS router (with default certificate)
+      - traefik.http.routers.climacocal-local-secure.rule=Host(`${PRIVATE_DOMAIN}`)
+      - traefik.http.routers.climacocal-local-secure.entrypoints=websecure
+      - traefik.http.routers.climacocal-local-secure.tls=true
+      - traefik.http.routers.climacocal-local-secure.service=climacocal
+      # Service pointing to Django (port 8000)
+      - traefik.http.services.climacocal.loadbalancer.server.port=8000
+      # Middleware for HTTPS redirect
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
 
   db:
     image: postgres:15
@@ -62,63 +59,18 @@ services:
     networks:
       - proxy
 
-  youtube-automation:
-    build:
-      context: .
-      dockerfile: Dockerfile.youtube
-    container_name: youtube_automation
-    restart: always
-    environment:
-      - TZ=America/Sao_Paulo
-      - PYTHONUNBUFFERED=1
-      - GIT_USER_NAME=${GIT_USER_NAME:-YouTube Automation}
-      - GIT_USER_EMAIL=${GIT_USER_EMAIL:-automation@climacocal.com}
-      - DJANGO_PROJECT_PATH=/app/myproject
-    volumes:
-      - ./myproject:/app/myproject
-      - ./youtube/credentials:/youtube/credentials
-      - ./youtube/scripts/logs:/youtube/scripts/logs
-      - ./.git:/app/.git
-    networks:
-      - proxy
-    depends_on:
-      - climacocal
+  # YouTube container removido - streaming agora é direto via FFmpeg
 
-  camera-streamer:
-    build:
-      context: .
-      dockerfile: Dockerfile.camera
-    container_name: camera_streamer
-    restart: always
-    environment:
-      - TZ=America/Sao_Paulo
-      - CAMERA_RTSP_URL=rtsp://admin:CoraRosa@192.168.3.62:554/cam/realmonitor?channel=1&subtype=0
-      - YOUTUBE_RTMP_URL=rtmp://a.rtmp.youtube.com/live2
-      - YOUTUBE_STREAM_KEY=kvkv-f1c0-b1yt-92u0-axeg
-      - STREAM_RESOLUTION=1280x720
-      - STREAM_FPS=20
-      - STREAM_BITRATE=2500k
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_PORT=${SMTP_PORT}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - ALERT_EMAIL=${ALERT_EMAIL}
-      - HEALTH_CHECK_INTERVAL=60
-      - RECONNECT_DELAY=15
-      - MAX_RECONNECT_ATTEMPTS=5
-      - ENABLE_FALLBACK=true
-      - PING_TIMEOUT=10
+  # Camera streaming agora é gerenciado pelo Django com FFmpeg interno
+  # Mantemos apenas um volume para arquivos HLS
+  camera-stream-volume:
+    image: alpine:latest
+    container_name: camera_stream_volume
+    command: sleep infinity
     volumes:
-      - ./myproject:/app/myproject:ro
-      - ./camera/logs:/camera/logs
+      - ./camera_stream:/camera_stream
     networks:
       - proxy
-    depends_on:
-      - youtube-automation
-    ports:
-      - "8001:8001"
 
   
 volumes:

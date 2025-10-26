@@ -124,14 +124,28 @@ def camera_status_api(request):
     """API endpoint for camera and payment status"""
     
     payment_status = payment_service.check_payment_status()
+    
+    # Force camera test to get fresh status
+    camera_service.test_camera_connection()
     camera_status = camera_service.get_status()
     
-    camera_available = (
-        camera_status['camera_status'] == 'online' and 
-        camera_status['playlist_available']
-    )
+    # Use FFmpeg HLS streaming instead of YouTube
+    camera_available = camera_status['camera_status'] == 'online'
     
-    access_granted = payment_service.is_access_granted() and camera_available
+    # BYPASS: If playlist is available, camera is working regardless of cache status
+    playlist_working = camera_status['playlist_available'] and camera_status['process_active']
+    if playlist_working:
+        camera_available = True
+        camera_status['camera_status'] = 'online'
+    
+    # CRITICAL: Do not grant access if camera is offline
+    if not camera_available:
+        logger.warning(f"Camera offline - denying payment flow")
+        access_granted = False
+        stream_url = None
+    else:
+        access_granted = payment_service.is_access_granted() and camera_available
+        stream_url = "/streaming/camera/stream.m3u8" if access_granted else None
     
     response_data = {
         "camera_available": camera_available,
@@ -140,7 +154,7 @@ def camera_status_api(request):
         "payment_status": payment_status,
         "access_granted": access_granted,
         "message": payment_service.get_access_message(payment_status, camera_available),
-        "stream_url": "/streaming/camera/stream.m3u8" if access_granted else None,
+        "stream_url": stream_url,
         "technical_details": {
             "is_streaming": camera_status['is_streaming'],
             "process_active": camera_status['process_active'],
