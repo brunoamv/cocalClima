@@ -1,6 +1,7 @@
-# 📡 API de Streaming ClimaCocal v2.2.0
+# 📡 API de Streaming ClimaCocal v2.3.0-dev
 
-## 🆕 Release: Enhanced UX & Auto-Recovery (26/10/2025)
+## 🆕 Release: Post-Refactoring Modular Architecture (26/10/2025)
+### ✅ Major Update: God Object ELIMINATED + Modular Services Implementation
 
 ## Endpoints da API
 
@@ -131,13 +132,22 @@ Health check para monitoramento de sistema.
 - `200 OK`: Sistema saudável
 - `503 Service Unavailable`: Sistema com problemas
 
-### 💳 Payment Integration (Existing)
+### 💳 Payment Integration (Modular Architecture)
 
 #### POST `/create-payment/`
-Cria pagamento MercadoPago (endpoint existente).
+Cria pagamento MercadoPago usando PaymentService modular.
+
+**Implementation**: `core.views.payment_views.create_payment` → `core.services.payment_service.PaymentService`
 
 #### GET `/check-payment/`
-Verifica status do pagamento (endpoint existente).
+Verifica status do pagamento via PaymentService.
+
+**Implementation**: `core.views.payment_views` → `core.services.payment_service.PaymentService`
+
+#### 🆕 Modular Services Backend
+- **PaymentService**: Gerencia MercadoPago integration (118 linhas)
+- **WeatherService**: Weather API integration (61 linhas)
+- **YouTubeService**: Legacy YouTube automation (82 linhas)
 
 ## 🔧 Códigos de Erro
 
