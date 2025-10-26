@@ -3,9 +3,9 @@
 ## 📋 Informações do Projeto
 
 ### **Nome**: ClimaCocal
-### **Versão**: 2.1.0 (Direct Streaming Architecture)
-### **Última Atualização**: 15 de Outubro de 2025
-### **Status**: PRODUÇÃO ✅
+### **Versão**: 2.1.1 (Optimized UX & Stream Detection)
+### **Última Atualização**: 26 de Outubro de 2025
+### **Status**: PRODUÇÃO ESTÁVEL ✅
 
 ---
 
@@ -170,10 +170,11 @@ docker-compose ps               # Container status
 | **Code Quality** | 5/10 | ⚠️ Débito técnico |
 | **Documentation** | 6/10 | ⚠️ Fragmentada |
 
-### **Distribuição de Código**
-- **Produtivo**: 2.963 linhas (78.4%) ✅
-- **Débito técnico**: 789 linhas (21.6%) ❌
-- **Testes**: 988 linhas (26.1%) ✅
+### **Distribuição de Código** (Total: 5.753 linhas)
+- **Produtivo**: 3.164 linhas (55.0%) ✅ 
+- **Débito técnico**: 789 linhas (13.7%) ⚠️
+- **Testes**: 988 linhas (17.2%) ✅
+- **Documentação**: 19 arquivos ✅
 
 ---
 
@@ -276,8 +277,10 @@ curl -f https://climacocal.com.br/streaming/health/
 ### **Trabalho Recente Completado**
 1. ✅ **SSL Certificate Fix** - Correção ERR_ECH_FALLBACK_CERTIFICATE_INVALID
 2. ✅ **Architectural Analysis** - Avaliação completa (6.8/10)
-3. ✅ **Documentation Update** - README.md e CLAUDE.md atualizados
-4. 🔄 **Próximo**: Limpeza de débito técnico (789 linhas obsoletas)
+3. ✅ **Stream Detection Fix** - Correção detecção câmera offline (26/10/2025)
+4. ✅ **UX Player Improvement** - Controles customizados sem sobreposição (26/10/2025)
+5. ✅ **Documentation Update** - CLAUDE.md e relatórios técnicos atualizados
+6. 🔄 **Próximo**: Limpeza de débito técnico (789 linhas obsoletas)
 
 ### **Próximas Tarefas Sugeridas**
 1. **Refatoração crítica**: `core/views.py` (293 → 4 módulos)

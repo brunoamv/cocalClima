@@ -10,6 +10,8 @@
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- HLS.js para streaming -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body oncontextmenu="return false">
   <!-- HEADER PADRÃO -->
@@ -58,15 +60,54 @@
 <!-- FECHA .container -->
 
 <!-- MODAL DE TRANSMISSÃO -->
-    <div class="modal fade" id="streamingModal" hidden="TRUE" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="streamingModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header" style="background-color: #003366; color: white;">
-            <h5 class="modal-title">Transmissão ao Vivo</h5>
-            <span id="countdown">3:00</span>
+            <h5 class="modal-title">📹 Transmissão ao Vivo - ClimaCocal</h5>
+            <span id="countdown" class="badge bg-warning text-dark">3:00</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" style="padding: 0;">
-            <iframe id="youtubeFrame" frameborder="0" allowfullscreen style="width: 100%; height: 360px; pointer-events: none;"></iframe>
+            <div class="modal-body" style="padding: 0; background: #000;">
+            <!-- Container do vídeo sem controles nativos -->
+            <div class="video-container" style="position: relative; background: #000;">
+              <video id="cameraVideo" style="width: 100%; height: 400px; background: #000;" poster="/static/img/camera-loading.jpg">
+                <div class="d-flex justify-content-center align-items-center" style="height: 400px;">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Carregando streaming...</span>
+                  </div>
+                </div>
+              </video>
+              
+              <!-- Controles customizados posicionados fora da área do vídeo -->
+              <div class="custom-video-controls" style="background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;">
+                <div class="controls-left" style="display: flex; align-items: center; gap: 15px;">
+                  <button id="playPauseBtn" class="btn btn-sm btn-outline-light" style="border: none; background: transparent; font-size: 18px; padding: 4px 8px;">
+                    <i class="fas fa-pause"></i>
+                  </button>
+                  <button id="muteBtn" class="btn btn-sm btn-outline-light" style="border: none; background: transparent; font-size: 16px; padding: 4px 8px;">
+                    <i class="fas fa-volume-up"></i>
+                  </button>
+                  <span id="currentTime" style="font-size: 12px; color: #ccc;">00:00</span>
+                </div>
+                
+                <div class="controls-center" style="flex: 1; margin: 0 15px;">
+                  <div style="font-size: 12px; text-align: center; color: #ccc;">
+                    <i class="fas fa-video me-1"></i>📡 Transmissão ao vivo
+                  </div>
+                </div>
+                
+                <div class="controls-right" style="display: flex; align-items: center; gap: 10px;">
+                  <button id="fullscreenBtn" class="btn btn-sm btn-outline-light" style="border: none; background: transparent; font-size: 16px; padding: 4px 8px;">
+                    <i class="fas fa-expand"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div id="streamStatus" class="text-center p-2" style="background: #f8f9fa;">
+              <small class="text-muted">🔄 Conectando à câmera...</small>
+            </div>
             </div>
         </div>
         </div>
@@ -92,45 +133,296 @@
         menuDropdown.style.display === "block" ? "none" : "block";
     });
 
-    // Abrir modal de transmissão
-    document.getElementById("watchStreamBtn").addEventListener("click", function () {
-      document.getElementById("streamingModal").hidden = false;
-      fetch("/check-payment/")
-        .then(response => response.json())
-        .then(data => {
-          if (data.status === "approved") {
-            fetch("/get-stream-url/")
-              .then(response => response.json())
-              .then(videoData => {
-                if (videoData.url) {
-                  let modal = new bootstrap.Modal(document.getElementById("streamingModal"));
-                  document.getElementById("youtubeFrame").src = videoData.url;
-                  modal.show();
-                  startCountdown(modal);
-                } else {
-                  alert("Erro ao carregar o vídeo.");
-                }
-              });
-          } else {
-            alert("Pagamento ainda não aprovado.");
+    // Variáveis globais
+    let hls = null;
+    let currentModal = null;
+    let countdownTimer = null;
+
+    // Função para atualizar status do streaming
+    function updateStreamStatus(message, isError = false) {
+      const statusDiv = document.getElementById("streamStatus");
+      if (statusDiv) {
+        statusDiv.innerHTML = `<small class="${isError ? 'text-danger' : 'text-muted'}">${message}</small>`;
+      }
+    }
+
+    // Função para configurar o streaming HLS
+    function setupHLSStreaming(videoElement, streamUrl) {
+      updateStreamStatus("🔄 Iniciando streaming...");
+      
+      if (Hls.isSupported()) {
+        hls = new Hls({
+          debug: false,
+          enableWorker: true,
+          lowLatencyMode: true,
+          backBufferLength: 90
+        });
+        
+        hls.loadSource(streamUrl);
+        hls.attachMedia(videoElement);
+        
+        hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+          console.log("Video e HLS anexados");
+          updateStreamStatus("📡 Conectado - Aguardando stream...");
+        });
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          console.log("Playlist HLS carregada");
+          updateStreamStatus("✅ Streaming ativo");
+          videoElement.play().catch(e => console.log("Auto-play bloqueado:", e));
+        });
+        
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.error("Erro HLS:", data);
+          if (data.fatal) {
+            updateStreamStatus("❌ Erro na conexão - Recarregue a página", true);
           }
         });
+        
+      } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+        // Safari nativo
+        videoElement.src = streamUrl;
+        updateStreamStatus("✅ Streaming ativo (Safari)");
+      } else {
+        updateStreamStatus("❌ Browser não suporta HLS", true);
+      }
+    }
+
+    // Função para iniciar streaming
+    function startStreaming() {
+      return fetch("/streaming/api/start/", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({})
+      }).then(response => response.json());
+    }
+
+    // Função para verificar status da API
+    function checkStreamingStatus() {
+      return fetch("/streaming/api/status/")
+        .then(response => response.json());
+    }
+
+    // Botão "Assistir ao Evento"
+    document.getElementById("watchStreamBtn").addEventListener("click", async function () {
+      try {
+        updateStreamStatus("🔍 Verificando status...");
+        
+        // Verificar status inicial
+        let data = await checkStreamingStatus();
+        console.log("Status inicial:", data);
+        
+        // Verificar pagamento
+        if (data.payment_status !== "approved") {
+          alert("❌ Pagamento ainda não foi aprovado.\n\nPor favor, complete o pagamento primeiro.");
+          return;
+        }
+        
+        // Abrir modal
+        const modal = new bootstrap.Modal(document.getElementById("streamingModal"));
+        currentModal = modal;
+        modal.show();
+        
+        // Se streaming não está ativo, tentar iniciar
+        if (!data.access_granted || !data.stream_url) {
+          updateStreamStatus("🚀 Iniciando câmera...");
+          
+          try {
+            const startResult = await startStreaming();
+            console.log("Resultado start:", startResult);
+            
+            if (startResult.success) {
+              // Aguardar alguns segundos para playlist ser criada
+              updateStreamStatus("⏳ Preparando streaming...");
+              
+              await new Promise(resolve => setTimeout(resolve, 5000));
+              
+              // Verificar status novamente
+              data = await checkStreamingStatus();
+              console.log("Status após start:", data);
+            } else {
+              throw new Error(startResult.message || "Falha ao iniciar streaming");
+            }
+          } catch (error) {
+            console.error("Erro ao iniciar streaming:", error);
+            updateStreamStatus("❌ Erro ao iniciar câmera", true);
+            return;
+          }
+        }
+        
+        // Configurar streaming se disponível
+        if (data.access_granted && data.stream_url) {
+          const videoElement = document.getElementById("cameraVideo");
+          const correctStreamUrl = "/streaming/camera/stream.m3u8"; // URL correta
+          
+          setupHLSStreaming(videoElement, correctStreamUrl);
+          startCountdown(modal);
+        } else {
+          updateStreamStatus("📷 Câmera temporariamente indisponível", true);
+        }
+        
+      } catch (error) {
+        console.error("Erro geral:", error);
+        updateStreamStatus("❌ Erro de conexão - Tente novamente", true);
+      }
     });
 
+    // Countdown timer
     function startCountdown(modal) {
       let timeLeft = 180; // 3 minutos
       const countdownElem = document.getElementById("countdown");
-      const timer = setInterval(() => {
+      
+      countdownTimer = setInterval(() => {
         let minutes = Math.floor(timeLeft / 60);
         let seconds = timeLeft % 60;
         countdownElem.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        
         if (timeLeft-- <= 0) {
-          clearInterval(timer);
+          clearInterval(countdownTimer);
+          cleanupStreaming();
           modal.hide();
-          document.getElementById("youtubeFrame").src = "";
         }
       }, 1000);
     }
+
+    // Cleanup ao fechar modal
+    function cleanupStreaming() {
+      if (hls) {
+        hls.destroy();
+        hls = null;
+      }
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+      
+      const videoElement = document.getElementById("cameraVideo");
+      if (videoElement) {
+        videoElement.src = "";
+        videoElement.load();
+      }
+    }
+
+    // Event listener para cleanup quando modal é fechado
+    document.getElementById("streamingModal").addEventListener("hidden.bs.modal", cleanupStreaming);
+
+    // ========================================
+    // CONTROLES CUSTOMIZADOS DO VÍDEO
+    // ========================================
+    
+    // Variáveis dos controles
+    let isPlaying = false;
+    let isMuted = false;
+    let isFullscreen = false;
+
+    // Configurar controles customizados
+    function setupCustomControls() {
+      const video = document.getElementById("cameraVideo");
+      const playPauseBtn = document.getElementById("playPauseBtn");
+      const muteBtn = document.getElementById("muteBtn");
+      const fullscreenBtn = document.getElementById("fullscreenBtn");
+      const currentTimeDisplay = document.getElementById("currentTime");
+
+      if (!video || !playPauseBtn || !muteBtn || !fullscreenBtn) return;
+
+      // Play/Pause
+      playPauseBtn.addEventListener("click", () => {
+        if (video.paused) {
+          video.play().then(() => {
+            isPlaying = true;
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+          }).catch(e => console.log("Erro ao reproduzir:", e));
+        } else {
+          video.pause();
+          isPlaying = false;
+          playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+        }
+      });
+
+      // Mute/Unmute
+      muteBtn.addEventListener("click", () => {
+        video.muted = !video.muted;
+        isMuted = video.muted;
+        muteBtn.innerHTML = isMuted ? 
+          '<i class="fas fa-volume-mute"></i>' : 
+          '<i class="fas fa-volume-up"></i>';
+      });
+
+      // Fullscreen
+      fullscreenBtn.addEventListener("click", () => {
+        if (!document.fullscreenElement) {
+          const videoContainer = document.querySelector(".video-container");
+          if (videoContainer.requestFullscreen) {
+            videoContainer.requestFullscreen();
+          } else if (videoContainer.webkitRequestFullscreen) {
+            videoContainer.webkitRequestFullscreen();
+          } else if (videoContainer.msRequestFullscreen) {
+            videoContainer.msRequestFullscreen();
+          }
+          isFullscreen = true;
+          fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+          }
+          isFullscreen = false;
+          fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+        }
+      });
+
+      // Atualizar tempo (para streams ao vivo mostra duração)
+      video.addEventListener("timeupdate", () => {
+        if (video.duration && isFinite(video.duration)) {
+          const current = video.currentTime;
+          const duration = video.duration;
+          const currentMinutes = Math.floor(current / 60);
+          const currentSeconds = Math.floor(current % 60);
+          const durationMinutes = Math.floor(duration / 60);
+          const durationSeconds = Math.floor(duration % 60);
+          
+          currentTimeDisplay.textContent = 
+            `${currentMinutes.toString().padStart(2, '0')}:${currentSeconds.toString().padStart(2, '0')} / ${durationMinutes.toString().padStart(2, '0')}:${durationSeconds.toString().padStart(2, '0')}`;
+        } else {
+          // Para live streams
+          currentTimeDisplay.textContent = "AO VIVO";
+        }
+      });
+
+      // Auto-play quando stream carrega
+      video.addEventListener("loadeddata", () => {
+        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        isPlaying = true;
+      });
+
+      // Eventos de pause/play do vídeo
+      video.addEventListener("play", () => {
+        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        isPlaying = true;
+      });
+
+      video.addEventListener("pause", () => {
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+        isPlaying = false;
+      });
+
+      // Detectar saída do fullscreen
+      document.addEventListener("fullscreenchange", () => {
+        if (!document.fullscreenElement) {
+          fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+          isFullscreen = false;
+        }
+      });
+    }
+
+    // Configurar controles quando modal abrir
+    document.getElementById("streamingModal").addEventListener("shown.bs.modal", () => {
+      setTimeout(setupCustomControls, 500);
+    });
+
   </script>
 </body>
 </html>

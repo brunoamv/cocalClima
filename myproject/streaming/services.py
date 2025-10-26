@@ -40,26 +40,48 @@ class CameraStreamingService:
         }
     
     def test_camera_connection(self) -> bool:
-        """Test if camera RTSP stream is accessible"""
+        """Test if camera stream is available by checking existing stream files"""
         try:
-            test_cmd = [
-                'ffprobe', '-v', 'quiet', '-rtsp_transport', 'tcp',
-                '-i', self.rtsp_url, '-show_entries', 'stream=codec_type',
-                '-of', 'csv=p=0', '-t', '5'
-            ]
+            # Check if stream.m3u8 exists and is recent (within last 30 seconds)
+            playlist_path = self.stream_output_dir / 'stream.m3u8'
             
-            result = subprocess.run(
-                test_cmd, 
-                capture_output=True, 
-                text=True, 
-                timeout=10
-            )
+            if playlist_path.exists():
+                # Check if file is recent
+                file_age = time.time() - playlist_path.stat().st_mtime
+                
+                if file_age < 30:  # File is recent (less than 30 seconds old)
+                    cache.set('camera_status', 'online', timeout=30)
+                    logger.info("Camera connection test: SUCCESS (stream files detected)")
+                    return True
+                else:
+                    logger.warning(f"Stream playlist exists but is old ({file_age:.1f}s)")
             
-            camera_accessible = 'video' in result.stdout
-            cache.set('camera_status', 'online' if camera_accessible else 'offline', timeout=30)
-            
-            logger.info(f"Camera connection test: {'SUCCESS' if camera_accessible else 'FAILED'}")
-            return camera_accessible
+            # If no recent playlist, try direct camera test (fallback)
+            try:
+                test_cmd = [
+                    'ffprobe', '-v', 'quiet', '-rtsp_transport', 'tcp',
+                    '-i', self.rtsp_url, '-show_entries', 'stream=codec_type',
+                    '-of', 'csv=p=0'
+                ]
+                
+                result = subprocess.run(
+                    test_cmd, 
+                    capture_output=True, 
+                    text=True, 
+                    timeout=5
+                )
+                
+                camera_accessible = 'video' in result.stdout
+                cache.set('camera_status', 'online' if camera_accessible else 'offline', timeout=30)
+                
+                logger.info(f"Camera direct test: {'SUCCESS' if camera_accessible else 'FAILED'}")
+                return camera_accessible
+                
+            except FileNotFoundError:
+                # ffprobe not available, but we can still check stream files
+                logger.warning("ffprobe not available, using stream file detection only")
+                cache.set('camera_status', 'unknown', timeout=30)
+                return False
             
         except Exception as e:
             logger.error(f"Camera connection test failed: {e}")
@@ -227,15 +249,33 @@ class CameraStreamingService:
         """Get current streaming status"""
         camera_status = cache.get('camera_status', 'unknown')
         streaming_status = cache.get('streaming_status', 'stopped')
-        playlist_exists = (self.stream_output_dir / 'stream.m3u8').exists()
+        playlist_path = self.stream_output_dir / 'stream.m3u8'
+        playlist_exists = playlist_path.exists()
+        
+        # Check if stream is actually running by examining files
+        stream_active = False
+        if playlist_exists:
+            try:
+                file_age = time.time() - playlist_path.stat().st_mtime
+                stream_active = file_age < 30  # Recent playlist indicates active stream
+                
+                # If we detect active external streaming, update our status
+                if stream_active and not self.is_streaming:
+                    logger.info("External streaming detected, updating status")
+                    streaming_status = 'active'
+                    cache.set('streaming_status', 'active', timeout=300)
+                    
+            except Exception as e:
+                logger.error(f"Error checking playlist age: {e}")
         
         return {
-            'is_streaming': self.is_streaming,
+            'is_streaming': self.is_streaming or stream_active,  # Include external streams
             'camera_status': camera_status,
             'streaming_status': streaming_status,
             'playlist_available': playlist_exists,
             'process_active': self.ffmpeg_process is not None and self.ffmpeg_process.poll() is None,
-            'stream_config': self.stream_config
+            'stream_config': self.stream_config,
+            'external_stream_detected': stream_active and not self.is_streaming
         }
 
 
