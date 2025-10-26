@@ -25,4 +25,4 @@ gunicorn.sock
 youtube/
 
 # Arquivos com log
-scripts/logs/
+scripts/logs/camera_stream/
