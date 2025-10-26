@@ -1,4 +1,6 @@
-# 📡 API de Streaming ClimacoCAL
+# 📡 API de Streaming ClimaCocal v2.2.0
+
+## 🆕 Release: Enhanced UX & Auto-Recovery (26/10/2025)
 
 ## Endpoints da API
 

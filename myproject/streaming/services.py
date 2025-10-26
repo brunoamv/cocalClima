@@ -29,6 +29,7 @@ class CameraStreamingService:
         self.ffmpeg_process: Optional[subprocess.Popen] = None
         self.is_streaming = False
         self.last_segment_time = 0
+        self.last_restart_time = 0  # Cooldown para evitar restart excessivo
         
         # Stream configuration
         self.stream_config = {
@@ -55,6 +56,15 @@ class CameraStreamingService:
                     return True
                 else:
                     logger.warning(f"Stream playlist exists but is old ({file_age:.1f}s)")
+                    # Auto-restart stream if playlist is too old (>90 seconds) and cooldown passed
+                    if file_age > 90:
+                        current_time = time.time()
+                        if current_time - self.last_restart_time > 300:  # 5 min cooldown
+                            logger.info("Auto-restarting stream due to old playlist")
+                            self.last_restart_time = current_time
+                            self.restart_stream()
+                        else:
+                            logger.debug(f"Restart cooldown active ({(current_time - self.last_restart_time):.0f}s)")
             
             # If no recent playlist, try direct camera test (fallback)
             try:
@@ -209,8 +219,40 @@ class CameraStreamingService:
             logger.error(f"Error stopping streaming: {e}")
             return False
     
+    def restart_stream(self) -> bool:
+        """Restart streaming process (stop + start)"""
+        try:
+            logger.info("Restarting stream...")
+            
+            # Stop current stream
+            if self.is_streaming:
+                self.stop_streaming()
+                time.sleep(2)  # Brief pause
+            
+            # Start fresh stream
+            result = self.start_streaming()
+            
+            # Handle both dict and bool return types
+            if isinstance(result, dict):
+                success = result.get('success', False)
+                message = result.get('message', 'Unknown error')
+            else:
+                success = bool(result)
+                message = 'Start streaming returned boolean'
+            
+            if success:
+                logger.info("Stream restart successful")
+                return True
+            else:
+                logger.error(f"Stream restart failed: {message}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error during stream restart: {e}")
+            return False
+    
     def _monitor_stream(self):
-        """Monitor streaming process health"""
+        """Monitor streaming process health and auto-restart if needed"""
         while self.is_streaming and self.ffmpeg_process:
             try:
                 # Check if process is still running
@@ -228,6 +270,13 @@ class CameraStreamingService:
                         self.last_segment_time = current_time
                     else:
                         logger.warning("No new segments detected, stream may be stalled")
+                        # Auto-restart if stream has been stalled for >60 seconds and cooldown passed
+                        file_age = current_time - playlist_path.stat().st_mtime
+                        if file_age > 60 and current_time - self.last_restart_time > 300:
+                            logger.info("Auto-restarting stalled stream")
+                            self.last_restart_time = current_time
+                            self.restart_stream()
+                            break
                 
                 time.sleep(10)  # Check every 10 seconds
                 

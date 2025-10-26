@@ -1,4 +1,5 @@
-# Correção do Erro SSL Certificate (ERR_ECH_FALLBACK_CERTIFICATE_INVALID)
+# Correção do Erro SSL Certificate - ClimaCocal v2.2.0
+## ✅ Status: RESOLVIDO (Incluído em Enhanced UX & Auto-Recovery)
 
 ## Problema Identificado
 

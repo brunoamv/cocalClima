@@ -1,4 +1,6 @@
-# 🎬 Sistema de Streaming Direto ClimacoCAL
+# 🎬 Sistema de Streaming Direto ClimaCocal v2.2.0
+
+## 🆕 Enhanced UX & Auto-Recovery (26/10/2025)
 
 ## Visão Geral da Implementação
 

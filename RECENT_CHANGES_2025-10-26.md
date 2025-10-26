@@ -1,5 +1,6 @@
-# Mudanças Recentes - ClimaCocal
+# Mudanças Recentes - ClimaCocal v2.2.0
 ## Data: 26 de Outubro de 2025
+## Release: Enhanced UX & Auto-Recovery
 
 ### 🎯 Problemas Resolvidos
 
@@ -130,3 +131,63 @@ if playlist_path.exists():
 ```
 
 **Ambas as soluções são backwards compatible e não afetam funcionalidades existentes.**
+
+## 🆕 Novas Funcionalidades v2.2.0
+
+### 4. **Sistema de Auto-Recovery Inteligente** ⭐ NOVO
+**Funcionalidade**: Detecção automática de streams parados com reinício inteligente  
+**Implementação**:
+- **Detecção**: Playlist >90s = trigger de restart
+- **Cooldown**: 5min entre tentativas (evita loops infinitos)
+- **Monitoramento**: Verificação a cada 10s no _monitor_stream()
+- **Correção de bug**: Fixed 'bool' object has no attribute 'get'
+
+**Arquivos Modificados**:
+- `myproject/streaming/services.py` (+60 linhas)
+  - `restart_stream()`: Nova função de restart com cooldown
+  - `test_camera_connection()`: Auto-restart quando detecta playlist antiga
+  - `_monitor_stream()`: Monitoramento contínuo melhorado
+  - `__init__()`: Adicionado `last_restart_time` para cooldown
+
+**Resultado**: ✅ Streams não ficam mais parados por longos períodos
+
+### 5. **Enhanced UX - Complete Redesign** 🎨 NOVO
+**Funcionalidade**: Interface moderna baseada no design system do index.html  
+**Implementação**:
+- **Hero Section**: Layout responsivo com balões informativos
+- **Camera Overlay**: Informações em tempo real (hora/clima/localização)
+- **Header**: Consistente com a homepage (phrase-area, header-phrase)
+- **Controles**: Player customizado sem sobreposição de elementos
+
+**Arquivos Modificados**:
+- `payment_success.html` (refatorado completamente)
+- `payment_success_backup.html` (backup criado)
+
+**Features Específicas**:
+- 🕒 Hora/data atualizada a cada segundo
+- 🌡️ Temperatura a cada 2 minutos via `/weather/`
+- 📍 Localização: "Cocalzinho de Goiás" (atualizada)
+- 🎨 Layout baseado no hero section do index
+
+**Resultado**: ✅ UX profissional e consistente com design system
+
+### 6. **Location Update** 📍 NOVO
+**Funcionalidade**: Atualização completa da localização  
+**Mudança**: "São José" → **"Cocalzinho de Goiás"**  
+**Aplicada em**:
+- Hero section: "Acesso liberado para transmissão ao vivo de Cocalzinho de Goiás"
+- Camera overlay: Informações de localização no player
+- Balões informativos: "🌤️ Clima atual de Cocalzinho"
+
+**Resultado**: ✅ Localização consistente em toda aplicação
+
+### 7. **Template Refactoring** 🔧 NOVO
+**Funcionalidade**: Template unificado para test-payment-direct e payment-success  
+**Implementação**:
+- Refatoração completa do `payment_success.html`
+- Baseado na versão em produção funcionando
+- Tags Django corretas (`{% static %}`)
+- Backup preservado para rollback
+
+**Resultado**: ✅ Consistência entre desenvolvimento e produção
+

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pagamento - ClimaCocal</title>
   {% load static %}
+  <!-- <script src="{% static 'js/script.js' %}"></script> -->
   <link rel="stylesheet" href="{% static 'css/style.css' %}"> 
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -103,7 +104,7 @@
             <div class="modal-body" style="padding: 0; background: #000;">
             <!-- Container do vídeo sem controles nativos -->
             <div class="video-container" style="position: relative; background: #000;">
-              <video id="cameraVideo" style="width: 100%; height: 400px; background: #000;" poster="{% static 'img/camera-loading.jpg' %}">
+              <video id="cameraVideo" style="width: 100%; height: 400px; background: #000;" poster="/static/img/camera-loading.jpg">
                 <div class="d-flex justify-content-center align-items-center" style="height: 400px;">
                   <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Carregando streaming...</span>
@@ -163,11 +164,16 @@
         </div>
     </div>
 
+
   <!-- FOOTER -->
   <footer>
     <img src="{% static 'img/logo_rodape.png' %}" alt="Logo ClimaCocal Rodapé" />
     <p>&copy; 2025 ClimaCocal. Todos os direitos reservados.</p>
   </footer>
+
+ 
+
+
 
   <script>
     // Botão de menu toggle
@@ -259,7 +265,7 @@
         
         // Verificar pagamento
         if (data.payment_status !== "approved") {
-          alert("❌ Pagamento ainda não foi aprovado.\\n\\nPor favor, complete o pagamento primeiro.");
+          alert("❌ Pagamento ainda não foi aprovado.\n\nPor favor, complete o pagamento primeiro.");
           return;
         }
         
