@@ -71,32 +71,57 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Enhanced payment button click handler
     function handlePaymentClick() {
-        // Check current status first
-        fetch("/streaming/api/status/")
-            .then(response => response.json())
-            .then(data => {
-                if (data.access_granted) {
-                    // User has access, show stream
-                    showVideoStream(data.stream_url);
-                } else if (data.payment_status === "pending") {
-                    // User needs to pay
-                    fetch("/create-payment/")
+        // Check if we're on homepage (should always redirect to payment)
+        const isHomepage = window.location.pathname === '/' || window.location.pathname === '/index.html';
+        
+        if (isHomepage) {
+            // HOMEPAGE: Always redirect to MercadoPago payment
+            fetch("/streaming/api/status/")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.camera_available) {
+                        // Camera is available, redirect to payment
+                        fetch("/create-payment/")
                         .then(response => response.json())
                         .then(paymentData => {
                             if (paymentData.init_point) {
                                 window.location.href = paymentData.init_point;
                             } else {
-                                alert("Erro ao processar pagamento.");
+                                alert("Erro ao processar pagamento: " + (paymentData.error || "Erro desconhecido"));
                             }
+                        })
+                        .catch(error => {
+                            console.error('Error creating payment:', error);
+                            alert("Erro ao processar pagamento. Tente novamente.");
                         });
-                } else {
-                    alert(data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error handling payment click:', error);
-                alert("Erro de conexão. Tente novamente.");
-            });
+                    } else {
+                        alert("📷 Câmera indisponível no momento. Tente novamente em alguns instantes.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking camera status:', error);
+                    alert("Erro de conexão. Tente novamente.");
+                });
+        } else {
+            // PAYMENT SUCCESS PAGE: Check status and show stream if paid
+            fetch("/streaming/api/status/")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.access_granted) {
+                        // User has access, show stream
+                        showVideoStream(data.stream_url);
+                    } else if (data.payment_status === "pending") {
+                        // User needs to pay (should not happen on success page)
+                        alert("⚠️ Pagamento ainda não foi processado. Retorne à página inicial para pagar.");
+                    } else {
+                        alert("❌ " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error handling payment click:', error);
+                    alert("Erro de conexão. Tente novamente.");
+                });
+        }
     }
     
     // Show HLS video stream
