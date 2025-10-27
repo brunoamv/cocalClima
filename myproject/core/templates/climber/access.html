@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transmissão ao Vivo - ClimaCocal</title>
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    <!-- HLS.js for video streaming -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
+    <style>
+        .access-container {
+            max-width: 1200px;
+            margin: 1rem auto;
+            padding: 1rem;
+        }
+        
+        .welcome-header {
+            background: linear-gradient(135deg, #4a7c59 0%, #5d9870 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(74, 124, 89, 0.3);
+        }
+        
+        .welcome-header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2.5rem;
+        }
+        
+        .welcome-header p {
+            margin: 0;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .access-info {
+            background: #f0f8ff;
+            border: 2px solid #4a7c59;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .access-details {
+            flex: 1;
+        }
+        
+        .access-details h3 {
+            color: #2c5530;
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .countdown-display {
+            flex: 1;
+            text-align: right;
+            min-width: 200px;
+        }
+        
+        .countdown {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #721c24;
+        }
+        
+        .video-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .video-player {
+            width: 100%;
+            height: auto;
+            min-height: 400px;
+            display: block;
+        }
+        
+        .video-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .video-controls {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0 0 10px 10px;
+            text-align: center;
+        }
+        
+        .control-btn {
+            background: #4a7c59;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin: 0 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: #5d9870;
+        }
+        
+        .control-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-live {
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-offline {
+            background: #dc3545;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .weather-info {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .weather-info h3 {
+            color: #2c5530;
+            margin-bottom: 1rem;
+        }
+        
+        .weather-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .weather-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .weather-item i {
+            font-size: 2rem;
+            color: #4a7c59;
+            margin-bottom: 0.5rem;
+        }
+        
+        .logout-section {
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .btn-logout {
+            background: #dc3545;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+        
+        .btn-logout:hover {
+            background: #c82333;
+            text-decoration: none;
+            color: white;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .access-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .countdown-display {
+                text-align: center;
+                margin-top: 1rem;
+            }
+            
+            .welcome-header h1 {
+                font-size: 2rem;
+            }
+            
+            .video-player {
+                min-height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-container">
+            <img src="{% static 'img/logo_branca_header.png' %}" alt="Logo ClimaCocal" class="logo" />
+            <div class="phrase-area">
+                <h1 class="header-phrase">Transmissão</h1>
+                <h1 class="header-phrase">ao Vivo</h1>
+            </div>
+        </div>
+    </header>
+
+    <div class="access-container">
+        <!-- Welcome Header -->
+        <div class="welcome-header">
+            <h1>🏔️ Bem-vindo, {{ climber_name }}!</h1>
+            <p>Sua transmissão ao vivo exclusiva está disponível</p>
+        </div>
+
+        <!-- Access Info -->
+        <div class="access-info">
+            <div class="access-details">
+                <h3><i class="fas fa-user-check"></i> Acesso Escalador Ativo</h3>
+                <p>
+                    <strong>Nome:</strong> {{ climber_name }}<br>
+                    <strong>Tipo:</strong> Acesso Temporário Gratuito<br>
+                    <strong>Válido até:</strong> 11 de Novembro de 2025
+                </p>
+            </div>
+            <div class="countdown-display">
+                <div><strong>Tempo restante:</strong></div>
+                <div class="countdown" id="accessCountdown">Calculando...</div>
+            </div>
+        </div>
+
+        <!-- Video Section -->
+        <div class="video-section">
+            <h2><i class="fas fa-video"></i> Transmissão ao Vivo</h2>
+            
+            <div class="video-container">
+                <video id="videoPlayer" class="video-player" controls>
+                    <p>Seu navegador não suporta vídeo HTML5.</p>
+                </video>
+                
+                <div class="video-overlay" id="videoOverlay">
+                    <div><span class="status-indicator status-offline" id="statusIndicator"></span><span id="streamStatus">Carregando...</span></div>
+                    <div id="currentTime"></div>
+                    <div id="currentWeather"></div>
+                </div>
+            </div>
+            
+            <div class="video-controls">
+                <button class="control-btn" id="refreshBtn" onclick="refreshStream()">
+                    <i class="fas fa-refresh"></i> Atualizar
+                </button>
+                <button class="control-btn" id="fullscreenBtn" onclick="toggleFullscreen()">
+                    <i class="fas fa-expand"></i> Tela Cheia
+                </button>
+                <span id="streamInfo" style="margin-left: 1rem; color: #666;"></span>
+            </div>
+        </div>
+
+        <!-- Weather Info -->
+        <div class="weather-info">
+            <h3><i class="fas fa-cloud-sun"></i> Condições Atuais</h3>
+            <div class="weather-grid" id="weatherGrid">
+                <div class="weather-item">
+                    <i class="fas fa-thermometer-half"></i>
+                    <div><strong>Temperatura</strong></div>
+                    <div id="temperature">--°C</div>
+                </div>
+                <div class="weather-item">
+                    <i class="fas fa-eye"></i>
+                    <div><strong>Visibilidade</strong></div>
+                    <div id="visibility">-- km</div>
+                </div>
+                <div class="weather-item">
+                    <i class="fas fa-wind"></i>
+                    <div><strong>Vento</strong></div>
+                    <div id="wind">-- km/h</div>
+                </div>
+                <div class="weather-item">
+                    <i class="fas fa-tint"></i>
+                    <div><strong>Umidade</strong></div>
+                    <div id="humidity">--%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logout Section -->
+        <div class="logout-section">
+            <a href="{% url 'climber-logout' %}" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Sair do Sistema
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let videoPlayer;
+        let hls;
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeStream();
+            updateCurrentTime();
+            updateAccessCountdown();
+            loadWeatherData();
+            
+            // Update time every second
+            setInterval(updateCurrentTime, 1000);
+            
+            // Update countdown every minute
+            setInterval(updateAccessCountdown, 60000);
+            
+            // Update weather every 2 minutes
+            setInterval(loadWeatherData, 120000);
+        });
+        
+        function initializeStream() {
+            videoPlayer = document.getElementById('videoPlayer');
+            
+            // Check stream status and load if available
+            fetch('/streaming/api/status/')
+                .then(response => response.json())
+                .then(data => {
+                    updateStreamStatus(data);
+                    
+                    if (data.access_granted && data.stream_url) {
+                        loadHLSStream(data.stream_url);
+                    } else {
+                        showStreamError(data.message || 'Stream não disponível');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking stream status:', error);
+                    showStreamError('Erro ao verificar stream');
+                });
+        }
+        
+        function loadHLSStream(streamUrl) {
+            if (Hls.isSupported()) {
+                hls = new Hls({
+                    debug: false,
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    backBufferLength: 90
+                });
+                
+                hls.loadSource(streamUrl);
+                hls.attachMedia(videoPlayer);
+                
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    console.log('Stream loaded successfully');
+                    updateStreamStatus({access_granted: true, camera_available: true});
+                    document.getElementById('streamInfo').textContent = 'Stream carregado com sucesso';
+                });
+                
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    console.error('HLS error:', data);
+                    if (data.fatal) {
+                        showStreamError('Erro fatal no stream');
+                    }
+                });
+                
+            } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+                // Safari native HLS support
+                videoPlayer.src = streamUrl;
+                videoPlayer.addEventListener('loadedmetadata', function() {
+                    updateStreamStatus({access_granted: true, camera_available: true});
+                });
+            } else {
+                showStreamError('Seu navegador não suporta HLS');
+            }
+        }
+        
+        function updateStreamStatus(data) {
+            const statusIndicator = document.getElementById('statusIndicator');
+            const streamStatus = document.getElementById('streamStatus');
+            
+            if (data.access_granted && data.camera_available) {
+                statusIndicator.className = 'status-indicator status-live';
+                streamStatus.textContent = 'AO VIVO';
+            } else {
+                statusIndicator.className = 'status-indicator status-offline';
+                streamStatus.textContent = data.camera_available ? 'OFFLINE' : 'INDISPONÍVEL';
+            }
+        }
+        
+        function showStreamError(message) {
+            const videoContainer = document.querySelector('.video-container');
+            videoContainer.innerHTML = `
+                <div style="background: #f8d7da; color: #721c24; padding: 2rem; text-align: center; min-height: 400px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <h3>Stream Temporariamente Indisponível</h3>
+                    <p>${message}</p>
+                    <button onclick="initializeStream()" class="control-btn" style="margin-top: 1rem;">
+                        <i class="fas fa-refresh"></i> Tentar Novamente
+                    </button>
+                </div>
+            `;
+        }
+        
+        function refreshStream() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
+            
+            // Stop current stream if exists
+            if (hls) {
+                hls.destroy();
+            }
+            
+            // Reinitialize after 2 seconds
+            setTimeout(() => {
+                initializeStream();
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = '<i class="fas fa-refresh"></i> Atualizar';
+            }, 2000);
+        }
+        
+        function toggleFullscreen() {
+            if (videoPlayer.requestFullscreen) {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    videoPlayer.requestFullscreen();
+                }
+            }
+        }
+        
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('pt-BR', {
+                timeZone: 'America/Sao_Paulo',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                day: '2-digit',
+                month: '2-digit'
+            });
+            
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        
+        function updateAccessCountdown() {
+            const accessUntil = new Date('2025-11-11T23:59:59');
+            const now = new Date();
+            const timeDiff = accessUntil - now;
+            
+            if (timeDiff > 0) {
+                const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                
+                document.getElementById('accessCountdown').textContent = `${days} dias, ${hours}h ${minutes}min`;
+            } else {
+                document.getElementById('accessCountdown').textContent = 'Acesso expirado';
+            }
+        }
+        
+        function loadWeatherData() {
+            fetch('/check-weather-data/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.weather) {
+                        const weather = data.weather;
+                        document.getElementById('temperature').textContent = weather.temperature || '--°C';
+                        document.getElementById('visibility').textContent = weather.visibility || '-- km';
+                        document.getElementById('wind').textContent = weather.wind_speed || '-- km/h';
+                        document.getElementById('humidity').textContent = weather.humidity || '--%';
+                        
+                        // Update overlay weather
+                        const temp = weather.temperature ? weather.temperature.replace('°C', '') + '°' : '--°';
+                        document.getElementById('currentWeather').textContent = `🌡️ ${temp}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading weather:', error);
+                });
+        }
+    </script>
+</body>
+</html>

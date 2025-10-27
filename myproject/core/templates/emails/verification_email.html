@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirme seu Email - ClimaCocal</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4a7c59 0%, #5d9870 100%);
+            padding: 30px 20px;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            color: #2c5530;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            font-size: 16px;
+            margin-bottom: 30px;
+            color: #555;
+        }
+        
+        .cta-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .verify-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white !important;
+            text-decoration: none !important;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+            transition: transform 0.3s;
+        }
+        
+        .verify-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        }
+        
+        .features-box {
+            background: #f0f8ff;
+            border: 2px solid #4a7c59;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .features-box h3 {
+            color: #2c5530;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .features-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .features-list li {
+            padding: 8px 0;
+            font-size: 16px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .features-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .expires-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 25px 0;
+            color: #856404;
+            text-align: center;
+        }
+        
+        .backup-link {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .backup-link strong {
+            color: #2c5530;
+        }
+        
+        .footer {
+            background: #2c5530;
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .footer h3 {
+            margin: 0 0 15px 0;
+            font-size: 20px;
+        }
+        
+        .footer p {
+            margin: 10px 0;
+            opacity: 0.9;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 16px;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .verify-button {
+                padding: 12px 30px;
+                font-size: 16px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏔️ ClimaCocal</h1>
+            <p>Confirmação de Email para Acesso Escaladores</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                Olá, <strong>{{ climber_name }}</strong>! 👋
+            </div>
+            
+            <div class="message">
+                <p>Muito obrigado por se cadastrar no <strong>ClimaCocal</strong>!</p>
+                
+                <p>Você está a apenas um clique de ter acesso <strong>gratuito</strong> 
+                à nossa transmissão ao vivo até <strong>{{ access_until }}</strong>.</p>
+                
+                <p>Para confirmar seu email e liberar seu acesso, clique no botão abaixo:</p>
+            </div>
+            
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <a href="{{ verification_url }}" class="verify-button">
+                    ✅ Confirmar Email
+                </a>
+            </div>
+            
+            <!-- Features Box -->
+            <div class="features-box">
+                <h3>🎯 O que você terá acesso:</h3>
+                <ul class="features-list">
+                    <li>📹 <strong>Transmissão ao vivo 24h</strong> da região de escalada</li>
+                    <li>🌤️ <strong>Condições climáticas</strong> em tempo real</li>
+                    <li>📱 <strong>Acesso móvel e desktop</strong> - assista de qualquer lugar</li>
+                    <li>🏔️ <strong>Visão completa</strong> das condições de escalada</li>
+                    <li>⏰ <strong>Disponível 24h por dia</strong> até 11 de novembro</li>
+                </ul>
+            </div>
+            
+            <!-- Expiration Warning -->
+            <div class="expires-warning">
+                <strong>⚠️ Importante:</strong> Este link expira em <strong>24 horas</strong>.
+                <br>Se não receber ou o link expirar, você pode solicitar um novo no site.
+            </div>
+            
+            <!-- Backup Link -->
+            <div class="backup-link">
+                <strong>Link não funcionando?</strong><br>
+                Copie e cole este endereço no seu navegador:<br>
+                <a href="{{ verification_url }}" style="color: #4a7c59; word-break: break-all;">
+                    {{ verification_url }}
+                </a>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <h3>{{ site_name }}</h3>
+            <p>
+                📍 Condições climáticas e transmissão ao vivo<br>
+                🏔️ Para escaladores em Cocalzinho de Goiás
+            </p>
+            
+            <div class="social-links">
+                <a href="mailto:bruno.amv@gmail.com">📧 Contato</a>
+            </div>
+            
+            <p style="font-size: 12px; margin-top: 20px; opacity: 0.7;">
+                Se você não fez este cadastro, pode ignorar este email com segurança.<br>
+                Este é um email automático, não responda diretamente.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro Realizado - ClimaCocal</title>
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    <style>
+        .success-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .success-icon {
+            font-size: 4rem;
+            color: #28a745;
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-30px);
+            }
+            60% {
+                transform: translateY(-15px);
+            }
+        }
+        
+        .success-header h1 {
+            color: #2c5530;
+            margin-bottom: 1rem;
+        }
+        
+        .success-content {
+            margin: 2rem 0;
+        }
+        
+        .email-info {
+            background: #f0f8ff;
+            border: 2px solid #4a7c59;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .email-info h3 {
+            color: #2c5530;
+            margin-bottom: 1rem;
+        }
+        
+        .email-highlight {
+            background: #fff3cd;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #ffeaa7;
+            font-weight: 600;
+            color: #856404;
+            margin: 1rem 0;
+        }
+        
+        .steps-list {
+            text-align: left;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .steps-list li {
+            margin-bottom: 0.8rem;
+            padding-left: 0.5rem;
+        }
+        
+        .btn-home {
+            background: linear-gradient(135deg, #4a7c59 0%, #5d9870 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin: 1rem 0.5rem;
+            transition: transform 0.3s;
+        }
+        
+        .btn-home:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-block;
+            margin: 1rem 0.5rem;
+            transition: transform 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: white;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-container">
+            <img src="{% static 'img/logo_branca_header.png' %}" alt="Logo ClimaCocal" class="logo" />
+            <div class="phrase-area">
+                <h1 class="header-phrase">Cadastro</h1>
+                <h1 class="header-phrase">Realizado!</h1>
+            </div>
+        </div>
+    </header>
+
+    <div class="success-container">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        
+        <div class="success-header">
+            <h1>Cadastro Realizado com Sucesso! 🎉</h1>
+            <p>Olá <strong>{{ climber.name }}</strong>, seu cadastro foi criado!</p>
+        </div>
+
+        <div class="email-info">
+            <h3><i class="fas fa-envelope"></i> Próximo Passo: Verifique seu Email</h3>
+            
+            <div class="email-highlight">
+                📧 Email enviado para: <strong>{{ email }}</strong>
+            </div>
+
+            <div class="steps-list">
+                <ol>
+                    <li>📱 Abra seu email</li>
+                    <li>🔍 Procure por "ClimaCocal - Confirme seu email"</li>
+                    <li>📧 Verifique também a pasta de SPAM</li>
+                    <li>🔗 Clique no link de verificação</li>
+                    <li>✅ Pronto! Acesso liberado até <strong>11/11</strong></li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="warning-box">
+            <strong><i class="fas fa-exclamation-triangle"></i> Importante:</strong>
+            <br>O link de verificação é válido por 24 horas. Se não receber o email, 
+            clique em "Reenviar Verificação" abaixo.
+        </div>
+
+        <div>
+            <a href="{% url 'home' %}" class="btn-home">
+                <i class="fas fa-home"></i> Voltar ao Início
+            </a>
+            
+            <a href="{% url 'resend-verification' %}" class="btn-secondary">
+                <i class="fas fa-paper-plane"></i> Reenviar Verificação
+            </a>
+        </div>
+
+        <div style="margin-top: 2rem; color: #666; font-size: 0.9rem;">
+            <p>
+                <i class="fas fa-clock"></i> 
+                Cadastro realizado em {{ climber.created_at|date:"d/m/Y \à\s H:i" }}
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh email check (optional)
+        setTimeout(() => {
+            const warningBox = document.querySelector('.warning-box');
+            if (warningBox) {
+                warningBox.innerHTML = `
+                    <strong><i class="fas fa-info-circle"></i> Dica:</strong>
+                    <br>Se já verificou seu email, 
+                    <a href="{% url 'home' %}" style="color: #856404; text-decoration: underline;">
+                        clique aqui para acessar a transmissão
+                    </a>
+                `;
+            }
+        }, 30000); // After 30 seconds
+    </script>
+</body>
+</html>

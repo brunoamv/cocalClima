@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erro na Verificação - ClimaCocal</title>
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    <style>
+        .error-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .error-icon {
+            font-size: 4rem;
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+        
+        .error-header h1 {
+            color: #721c24;
+            margin-bottom: 1rem;
+        }
+        
+        .error-info {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            color: #721c24;
+        }
+        
+        .solutions-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: left;
+        }
+        
+        .solutions-box h3 {
+            color: #856404;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .solutions-list li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4a7c59 0%, #5d9870 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin: 1rem 0.5rem;
+            transition: transform 0.3s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-block;
+            margin: 1rem 0.5rem;
+            transition: transform 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: white;
+        }
+        
+        .contact-info {
+            background: #e2e3e5;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            color: #383d41;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-container">
+            <img src="{% static 'img/logo_branca_header.png' %}" alt="Logo ClimaCocal" class="logo" />
+            <div class="phrase-area">
+                <h1 class="header-phrase">Erro na</h1>
+                <h1 class="header-phrase">Verificação</h1>
+            </div>
+        </div>
+    </header>
+
+    <div class="error-container">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <div class="error-header">
+            <h1>❌ Erro na Verificação</h1>
+            <p>Não foi possível verificar seu email</p>
+        </div>
+
+        <div class="error-info">
+            <h3><i class="fas fa-info-circle"></i> O que aconteceu?</h3>
+            <p>O link de verificação pode estar:</p>
+            <ul style="text-align: left; max-width: 300px; margin: 1rem auto;">
+                <li>🕐 Expirado (válido por 24 horas)</li>
+                <li>🔗 Inválido ou corrompido</li>
+                <li>✅ Já utilizado anteriormente</li>
+            </ul>
+        </div>
+
+        <div class="solutions-box">
+            <h3><i class="fas fa-tools"></i> Como resolver:</h3>
+            <ol class="solutions-list">
+                <li><strong>Reenvie a verificação:</strong> Clique no botão abaixo para receber um novo email</li>
+                <li><strong>Verifique o email:</strong> Certifique-se de usar o link mais recente</li>
+                <li><strong>Novo cadastro:</strong> Se necessário, faça um novo cadastro</li>
+                <li><strong>Contate o suporte:</strong> Se o problema persistir</li>
+            </ol>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div style="margin: 1.5rem 0;">
+                {% for message in messages %}
+                    <div style="padding: 12px; border-radius: 8px; margin-bottom: 1rem; 
+                                background: {% if message.tags == 'error' %}#f8d7da; color: #721c24; border: 1px solid #f5c6cb{% else %}#d4edda; color: #155724; border: 1px solid #c3e6cb{% endif %};">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div>
+            <a href="{% url 'resend-verification' %}" class="btn-primary">
+                <i class="fas fa-paper-plane"></i> Reenviar Verificação
+            </a>
+            
+            <a href="{% url 'climber-register' %}" class="btn-secondary">
+                <i class="fas fa-user-plus"></i> Novo Cadastro
+            </a>
+        </div>
+
+        <div>
+            <a href="{% url 'home' %}" class="btn-secondary">
+                <i class="fas fa-home"></i> Voltar ao Início
+            </a>
+        </div>
+
+        <div class="contact-info">
+            <h4><i class="fas fa-life-ring"></i> Precisa de Ajuda?</h4>
+            <p>
+                Se o problema persistir, entre em contato:<br>
+                📧 <strong>bruno.amv@gmail.com</strong><br>
+                <small>Responderemos em até 24 horas</small>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-focus on page load for better UX
+        window.addEventListener('load', function() {
+            const primaryBtn = document.querySelector('.btn-primary');
+            if (primaryBtn) {
+                primaryBtn.focus();
+            }
+        });
+        
+        // Add some helpful hints
+        setTimeout(() => {
+            const errorInfo = document.querySelector('.error-info');
+            if (errorInfo) {
+                const hint = document.createElement('div');
+                hint.style.cssText = `
+                    background: #e9ecef;
+                    padding: 1rem;
+                    border-radius: 8px;
+                    margin-top: 1rem;
+                    color: #495057;
+                    font-size: 0.9rem;
+                `;
+                hint.innerHTML = `
+                    <strong>💡 Dica:</strong> 
+                    Verifique se o link do email não foi "quebrado" 
+                    ao copiar/colar ou se está completo.
+                `;
+                errorInfo.appendChild(hint);
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
