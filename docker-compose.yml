@@ -24,10 +24,10 @@ services:
       - proxy
     labels:
       - traefik.enable=true
-      # HTTP router with redirect to HTTPS
+      # HTTP router (for Cloudflare Tunnel)
       - traefik.http.routers.climacocal.rule=Host(`${PUBLIC_DOMAIN_1}`) || Host(`${PUBLIC_DOMAIN_2}`)
       - traefik.http.routers.climacocal.entrypoints=web
-      - traefik.http.routers.climacocal.middlewares=redirect-to-https
+      - traefik.http.routers.climacocal.service=climacocal
       # Local HTTP router (no HTTPS redirect for local domain)
       - traefik.http.routers.climacocal-local.rule=Host(`${PRIVATE_DOMAIN}`)
       - traefik.http.routers.climacocal-local.entrypoints=web
@@ -38,6 +38,7 @@ services:
       - traefik.http.routers.climacocal-secure.entrypoints=websecure
       - traefik.http.routers.climacocal-secure.tls=true
       - traefik.http.routers.climacocal-secure.tls.certresolver=letsencrypt
+      - traefik.http.routers.climacocal-secure.service=climacocal
       # Local HTTPS router (with default certificate)
       - traefik.http.routers.climacocal-local-secure.rule=Host(`${PRIVATE_DOMAIN}`)
       - traefik.http.routers.climacocal-local-secure.entrypoints=websecure

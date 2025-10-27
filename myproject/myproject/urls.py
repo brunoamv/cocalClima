@@ -19,7 +19,7 @@ from django.conf.urls.static import static
 
 from django.urls import path, include
 
-from core.views import create_payment, payment_webhook, check_payment_status, home, payment_success ,payment_failure, payment_failure_safe , get_weather , check_youtube_live , get_stream_url, camera_stream, camera_segment, camera_status_api, test_payment_success, test_payment_direct 
+from core.views import create_payment, payment_webhook, check_payment_status, home, payment_success ,payment_failure, payment_failure_safe , weather , youtube_live_check , get_stream_url, camera_stream, camera_segment, camera_status_api, test_payment_success, test_payment_direct 
 urlpatterns = [
     path("", home, name="home"),
     path("create-payment/", create_payment, name="create_payment"),
@@ -32,8 +32,8 @@ urlpatterns = [
     path("test-payment-direct/", test_payment_direct, name="test_payment_direct"),
     path("webhook/", payment_webhook, name="webhook"),
     path("check-payment/", check_payment_status, name="check_payment"),
-    path("weather/", get_weather, name="get_weather"),
-    path("check-youtube-live/", check_youtube_live, name="check_youtube_live"),
+    path("weather/", weather, name="get_weather"),
+    path("check-youtube-live/", youtube_live_check, name="check_youtube_live"),
     path("get-stream-url/", get_stream_url, name="get_stream_url"),
     
     # Enhanced Streaming URLs
