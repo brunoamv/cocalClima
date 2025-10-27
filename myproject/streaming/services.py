@@ -88,10 +88,10 @@ class CameraStreamingService:
                 return camera_accessible
                 
             except FileNotFoundError:
-                # ffprobe not available, but we can still check stream files
-                logger.warning("ffprobe not available, using stream file detection only")
-                cache.set('camera_status', 'unknown', timeout=30)
-                return False
+                # ffprobe not available, assume camera is accessible if we can reach here
+                logger.warning("ffprobe not available, assuming camera accessible for streaming")
+                cache.set('camera_status', 'online', timeout=30)
+                return True
             
         except Exception as e:
             logger.error(f"Camera connection test failed: {e}")
@@ -306,9 +306,12 @@ class CameraStreamingService:
         if playlist_exists:
             try:
                 file_age = time.time() - playlist_path.stat().st_mtime
-                stream_active = file_age < 30  # Recent playlist indicates active stream
+                # More flexible detection: consider stream active if playlist exists and has segments
+                segments_exist = len(list(self.stream_output_dir.glob('*.ts'))) > 0
+                # Be more lenient: if playlist and segments exist, assume streaming capability
+                stream_active = file_age < 1800 and segments_exist  # 30 minutes tolerance with segments
                 
-                # If we detect active external streaming, update our status
+                # If we detect streaming, update our status
                 if stream_active and not self.is_streaming:
                     logger.info("External streaming detected, updating status")
                     streaming_status = 'active'
@@ -329,7 +332,7 @@ class CameraStreamingService:
 
 
 class PaymentValidationService:
-    """Service for validating payment status for camera access"""
+    """Service for validating payment status and climber access for camera access"""
     
     @staticmethod
     def check_payment_status() -> str:
@@ -337,19 +340,71 @@ class PaymentValidationService:
         return cache.get("payment_status", "pending")
     
     @staticmethod
-    def is_access_granted() -> bool:
-        """Check if user has valid payment for camera access"""
-        return PaymentValidationService.check_payment_status() == "approved"
+    def check_climber_access(request) -> bool:
+        """Check if current session has valid climber access"""
+        try:
+            # Import here to avoid circular imports
+            from core.services.climber_service import ClimberService
+            return ClimberService.check_climber_access(request)
+        except ImportError:
+            logger.warning("ClimberService not available")
+            return False
+        except Exception as e:
+            logger.error(f"Error checking climber access: {e}")
+            return False
     
     @staticmethod
-    def get_access_message(payment_status: str, camera_available: bool) -> str:
-        """Generate user-friendly access message"""
-        if payment_status != "approved":
-            return "💳 Pagamento necessário para acessar câmera ao vivo"
-        elif not camera_available:
-            return "📷 Câmera temporariamente indisponível"
+    def is_access_granted(request=None) -> bool:
+        """
+        Check if user has valid access (payment OR climber) for camera access.
+        
+        Args:
+            request: Django HTTP request (optional, for climber access check)
+            
+        Returns:
+            True if has payment access OR valid climber access
+        """
+        # Check payment access first (for backward compatibility)
+        payment_access = PaymentValidationService.check_payment_status() == "approved"
+        
+        # Check climber access if request is provided
+        climber_access = False
+        if request:
+            climber_access = PaymentValidationService.check_climber_access(request)
+        
+        return payment_access or climber_access
+    
+    @staticmethod
+    def get_access_type(request=None) -> str:
+        """
+        Get the type of access the user has.
+        
+        Returns:
+            'payment', 'climber', or 'none'
+        """
+        if PaymentValidationService.check_payment_status() == "approved":
+            return "payment"
+        elif request and PaymentValidationService.check_climber_access(request):
+            return "climber"
         else:
-            return "✅ Acesso liberado - transmissão ao vivo disponível"
+            return "none"
+    
+    @staticmethod
+    def get_access_message(request=None, camera_available: bool = True) -> str:
+        """Generate user-friendly access message based on access type"""
+        access_type = PaymentValidationService.get_access_type(request)
+        
+        if access_type == "payment":
+            if not camera_available:
+                return "📷 Câmera temporariamente indisponível"
+            return "✅ Acesso liberado via pagamento - transmissão ao vivo disponível"
+        elif access_type == "climber":
+            if not camera_available:
+                return "📷 Câmera temporariamente indisponível"
+            climber_name = request.session.get('climber_name', 'Escalador') if request else 'Escalador'
+            return f"✅ Acesso escalador liberado para {climber_name} - transmissão até 11/11"
+        else:
+            return "💳 Pagamento necessário ou cadastro de escalador para acessar câmera ao vivo"
     
     @staticmethod
     def set_payment_status(status: str, timeout: int = 600):

@@ -19,7 +19,13 @@ from django.conf.urls.static import static
 
 from django.urls import path, include
 
-from core.views import create_payment, payment_webhook, check_payment_status, home, payment_success ,payment_failure, payment_failure_safe , get_weather , check_youtube_live , get_stream_url, camera_stream, camera_segment, camera_status_api, test_payment_success, test_payment_direct 
+from core.views import create_payment, payment_webhook, check_payment_status, home, payment_success ,payment_failure, payment_failure_safe , weather , youtube_live_check , get_stream_url, camera_stream, camera_segment, camera_status_api, test_payment_success, test_payment_direct
+
+# Import climber views
+from core.views.climber_views import (
+    climber_register, verify_email, climber_status, climber_access,
+    climber_logout, climber_admin_stats, resend_verification
+) 
 urlpatterns = [
     path("", home, name="home"),
     path("create-payment/", create_payment, name="create_payment"),
@@ -31,9 +37,19 @@ urlpatterns = [
     path("test-payment-success/", test_payment_success, name="test_payment_success"),
     path("test-payment-direct/", test_payment_direct, name="test_payment_direct"),
     path("webhook/", payment_webhook, name="webhook"),
+    
+    # Climber registration URLs
+    path("escaladores/cadastro/", climber_register, name="climber-register"),
+    path("escaladores/verificar/<uuid:token>/", verify_email, name="verify-email"),
+    path("escaladores/status/", climber_status, name="climber-status"),
+    path("escaladores/acesso/", climber_access, name="climber-access"),
+    path("escaladores/logout/", climber_logout, name="climber-logout"),
+    path("escaladores/reenviar-verificacao/", resend_verification, name="resend-verification"),
+    path("admin/escaladores/estatisticas/", climber_admin_stats, name="climber-admin-stats"),
     path("check-payment/", check_payment_status, name="check_payment"),
-    path("weather/", get_weather, name="get_weather"),
-    path("check-youtube-live/", check_youtube_live, name="check_youtube_live"),
+    path("weather/", weather, name="get_weather"),
+    path("check-youtube-live/", youtube_live_check, name="check_youtube_live"),
+    path("check-weather-data/", weather, name="check_weather_data"),
     path("get-stream-url/", get_stream_url, name="get_stream_url"),
     
     # Enhanced Streaming URLs

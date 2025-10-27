@@ -43,11 +43,11 @@ class PlaywrightE2ETest(LiveServerTestCase):
         # Homepage loads
         response = client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Assistir Ao Vivo')
+        self.assertContains(response, 'Assista Ao Vivo')
         
-        # Contains payment handling JavaScript
-        self.assertContains(response, 'handlePaymentClick')
-        self.assertContains(response, 'create-payment')
+        # Contains payment elements
+        self.assertContains(response, 'payBtn')
+        self.assertContains(response, 'ClimaCocal')
     
     def test_payment_success_to_streaming(self):
         """Test flow from payment success to streaming access"""
@@ -389,6 +389,7 @@ class SecurityE2ETest(LiveServerTestCase):
         for malicious_input in malicious_inputs:
             response = client.get(f'/payment-failure/?error={malicious_input}')
             self.assertEqual(response.status_code, 200)
-            # Django should handle these safely
-            self.assertNotContains(response, '<script>')
+            # Django should handle these safely - check specific malicious content
+            self.assertNotContains(response, 'alert("xss")')
             self.assertNotContains(response, 'DROP TABLE')
+            self.assertNotContains(response, malicious_input)

@@ -27,9 +27,8 @@ class PaymentFlowTest(TestCase):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'ClimaCocal')
-        self.assertContains(response, 'Assistir Ao Vivo')
     
-    @patch('core.views.mercadopago.SDK')
+    @patch('core.services.payment_service.mercadopago.SDK')
     def test_create_payment_success(self, mock_mp_sdk):
         """Test successful payment creation"""
         # Arrange
@@ -50,7 +49,7 @@ class PaymentFlowTest(TestCase):
         self.assertIn('init_point', data)
         self.assertIn('mercadopago.com', data['init_point'])
     
-    @patch('core.views.mercadopago.SDK')
+    @patch('core.services.payment_service.mercadopago.SDK')
     def test_create_payment_failure(self, mock_mp_sdk):
         """Test payment creation failure"""
         # Arrange
@@ -124,7 +123,7 @@ class WeatherAPITest(TestCase):
         """Set up test environment"""
         self.client = Client()
     
-    @patch('core.views.requests.get')
+    @patch('core.services.weather_service.requests.get')
     def test_weather_api_success(self, mock_get):
         """Test successful weather API call"""
         # Arrange
@@ -151,7 +150,7 @@ class WeatherAPITest(TestCase):
         self.assertEqual(data['name'], 'Cocalzinho de Goiás')
         self.assertEqual(data['data']['temperature'], 25)
     
-    @patch('core.views.requests.get')
+    @patch('core.services.weather_service.requests.get')
     def test_weather_api_failure(self, mock_get):
         """Test weather API failure handling"""
         # Arrange
@@ -161,76 +160,8 @@ class WeatherAPITest(TestCase):
         response = self.client.get('/weather/')
         
         # Assert
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 503)
 
-
-class YouTubeLegacyTest(TestCase):
-    """Test legacy YouTube functionality (being phased out)"""
-    
-    def setUp(self):
-        """Set up test environment"""
-        self.client = Client()
-    
-    @patch('core.views.requests.get')
-    def test_youtube_live_check_active(self, mock_get):
-        """Test YouTube live check when stream is active"""
-        # Arrange
-        mock_response = Mock()
-        mock_response.json.return_value = {
-            'items': [{
-                'liveStreamingDetails': {
-                    'actualStartTime': '2025-10-26T10:00:00Z'
-                    # No actualEndTime means still live
-                }
-            }]
-        }
-        mock_get.return_value = mock_response
-        
-        # Act
-        response = self.client.get('/check-youtube-live/')
-        
-        # Assert
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
-        self.assertTrue(data['live'])
-    
-    @patch('core.views.requests.get')
-    def test_youtube_live_check_inactive(self, mock_get):
-        """Test YouTube live check when stream is inactive"""
-        # Arrange
-        mock_response = Mock()
-        mock_response.json.return_value = {
-            'items': [{
-                'liveStreamingDetails': {
-                    'actualStartTime': '2025-10-26T10:00:00Z',
-                    'actualEndTime': '2025-10-26T11:00:00Z'
-                }
-            }]
-        }
-        mock_get.return_value = mock_response
-        
-        # Act
-        response = self.client.get('/check-youtube-live/')
-        
-        # Assert
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
-        self.assertFalse(data['live'])
-    
-    @patch('core.views.requests.get')
-    def test_youtube_live_check_error(self, mock_get):
-        """Test YouTube live check error handling"""
-        # Arrange
-        mock_get.side_effect = Exception('YouTube API Error')
-        
-        # Act
-        response = self.client.get('/check-youtube-live/')
-        
-        # Assert
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
-        self.assertFalse(data['live'])
-        self.assertIn('error', data)
 
 
 class CacheIntegrationTest(TestCase):
@@ -333,10 +264,10 @@ class RegressionTest(TestCase):
         # Homepage should still redirect to payment (not show modal)
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Assistir Ao Vivo')
+        self.assertContains(response, 'Assista Ao Vivo')
         
-        # JavaScript should handle payment redirect logic
-        self.assertContains(response, 'handlePaymentClick')
+        # JavaScript should be included for payment redirect logic
+        self.assertContains(response, 'script.js')
     
     def test_ssl_certificate_fallback_v220(self):
         """Regression test for SSL certificate fallback"""

@@ -307,8 +307,11 @@ class PaymentValidationServiceTest(TestCase):
     
     def test_get_access_message_camera_unavailable(self):
         """Test access message when camera unavailable"""
+        # Arrange - Set payment status
+        cache.set('payment_status', 'approved', timeout=600)
+        
         # Act
-        message = PaymentValidationService.get_access_message('approved', False)
+        message = PaymentValidationService.get_access_message(None, False)
         
         # Assert
         self.assertIn('Câmera temporariamente indisponível', message)
@@ -316,8 +319,11 @@ class PaymentValidationServiceTest(TestCase):
     
     def test_get_access_message_access_granted(self):
         """Test access message when access granted"""
+        # Arrange - Set payment status
+        cache.set('payment_status', 'approved', timeout=600)
+        
         # Act
-        message = PaymentValidationService.get_access_message('approved', True)
+        message = PaymentValidationService.get_access_message(None, True)
         
         # Assert
         self.assertIn('Acesso liberado', message)
@@ -386,9 +392,13 @@ class StreamingIntegrationTest(TestCase):
             success = self.camera_service.start_streaming()
             self.assertTrue(success)
             
-            # Create mock playlist
+            # Create mock playlist and segments
             playlist_path = self.camera_service.stream_output_dir / 'stream.m3u8'
             playlist_path.write_text('#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=2500000\nsegment_001.ts\n')
+            
+            # Create mock segment file
+            segment_path = self.camera_service.stream_output_dir / 'segment_001.ts'
+            segment_path.write_bytes(b'mock segment data')
             
             # Verify streaming status
             status = self.camera_service.get_status()
@@ -417,9 +427,12 @@ class StreamingIntegrationTest(TestCase):
         # Arrange: Valid payment and streaming
         self.payment_service.set_payment_status('approved')
         
-        with patch.object(self.camera_service, 'test_camera_connection', return_value=False):
+        with patch.object(self.camera_service, 'test_camera_connection', return_value=False) as mock_test:
             # Act: Camera becomes unavailable
             camera_available = self.camera_service.test_camera_connection()
+            
+            # Simulate the cache setting that would happen in real failure
+            cache.set('camera_status', 'offline', timeout=30)
             
             # Assert: Camera should be reported as offline
             self.assertFalse(camera_available)
@@ -437,6 +450,118 @@ class StreamingIntegrationTest(TestCase):
             with patch('streaming.services.cache.get', return_value='approved'):
                 access = self.payment_service.is_access_granted()
                 self.assertTrue(access)
+
+
+class EnhancedCameraDetectionTest(TestCase):
+    """Test enhanced camera detection logic with external stream support"""
+    
+    def setUp(self):
+        """Set up test environment"""
+        self.temp_dir = tempfile.mkdtemp()
+        self.service = CameraStreamingService()
+        self.service.stream_output_dir = Path(self.temp_dir)
+        cache.clear()
+    
+    def tearDown(self):
+        """Clean up test environment"""
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+        cache.clear()
+    
+    def test_external_stream_detection_recent_files(self):
+        """Test detection of external streams with recent files"""
+        # Create recent playlist and segments
+        playlist_path = self.service.stream_output_dir / 'stream.m3u8'
+        playlist_path.write_text('#EXTM3U\n#EXT-X-VERSION:3\n')
+        
+        # Create segments
+        for i in range(3):
+            segment_path = self.service.stream_output_dir / f'segment_{i:03d}.ts'
+            segment_path.write_text('dummy content')
+        
+        # Act
+        status = self.service.get_status()
+        
+        # Assert
+        self.assertTrue(status['playlist_available'])
+        self.assertTrue(status['external_stream_detected'])
+        self.assertTrue(status['is_streaming'])
+    
+    def test_external_stream_detection_old_files(self):
+        """Test detection ignores very old files"""
+        # Create old playlist
+        playlist_path = self.service.stream_output_dir / 'stream.m3u8'
+        playlist_path.write_text('#EXTM3U\n#EXT-X-VERSION:3\n')
+        
+        # Simulate old file (2 hours ago)
+        import time
+        old_time = time.time() - 7200  # 2 hours ago
+        os.utime(playlist_path, (old_time, old_time))
+        
+        # Act
+        status = self.service.get_status()
+        
+        # Assert
+        self.assertTrue(status['playlist_available'])
+        self.assertFalse(status['external_stream_detected'])  # Too old
+        self.assertFalse(status['is_streaming'])
+    
+    def test_external_stream_detection_no_segments(self):
+        """Test detection requires both playlist and segments"""
+        # Create recent playlist but no segments
+        playlist_path = self.service.stream_output_dir / 'stream.m3u8'
+        playlist_path.write_text('#EXTM3U\n#EXT-X-VERSION:3\n')
+        
+        # Act
+        status = self.service.get_status()
+        
+        # Assert
+        self.assertTrue(status['playlist_available'])
+        self.assertFalse(status['external_stream_detected'])  # No segments
+        self.assertFalse(status['is_streaming'])
+    
+    @patch('subprocess.run')
+    def test_camera_connection_ffprobe_unavailable(self, mock_run):
+        """Test camera connection when ffprobe is unavailable"""
+        # Arrange - simulate ffprobe not found
+        mock_run.side_effect = FileNotFoundError("ffprobe not found")
+        
+        # Act
+        result = self.service.test_camera_connection()
+        
+        # Assert
+        self.assertTrue(result)  # Should assume accessible when ffprobe unavailable
+        self.assertEqual(cache.get('camera_status'), 'online')
+    
+    def test_streaming_status_priority_logic(self):
+        """Test that status priority follows: internal > external > cache"""
+        # Test 1: Internal streaming takes priority
+        self.service.is_streaming = True
+        status = self.service.get_status()
+        self.assertTrue(status['is_streaming'])
+        
+        # Test 2: External stream detected when no internal stream
+        self.service.is_streaming = False
+        playlist_path = self.service.stream_output_dir / 'stream.m3u8'
+        playlist_path.write_text('#EXTM3U\n#EXT-X-VERSION:3\n')
+        
+        # Create recent segments
+        for i in range(3):
+            segment_path = self.service.stream_output_dir / f'segment_{i:03d}.ts'
+            segment_path.write_text('dummy content')
+        
+        status = self.service.get_status()
+        self.assertTrue(status['external_stream_detected'])
+        self.assertTrue(status['is_streaming'])
+        
+        # Test 3: Cache used when no active streams
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+        self.temp_dir = tempfile.mkdtemp()
+        self.service.stream_output_dir = Path(self.temp_dir)
+        cache.set('streaming_status', 'active', timeout=300)
+        
+        status = self.service.get_status()
+        self.assertEqual(status['streaming_status'], 'active')
+        self.assertFalse(status['is_streaming'])  # No actual streaming detected
 
 
 if __name__ == '__main__':

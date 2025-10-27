@@ -68,13 +68,13 @@ class PaymentService:
             logger.error(f"Error validating webhook: {e}")
             return False
     
-    def set_payment_status(self, status: str, timeout: int = 600) -> None:
+    def set_payment_status(self, status: str, timeout: int = 180) -> None:
         """
         Set payment status in cache.
         
         Args:
             status: Payment status (approved, failure, pending)
-            timeout: Cache timeout in seconds (default: 600 = 10 minutes)
+            timeout: Cache timeout in seconds (default: 180 = 3 minutes)
         """
         cache.set("payment_status", status, timeout=timeout)
         logger.info(f"Payment status set to: {status}")

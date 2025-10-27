@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reenviar Verificação - ClimaCocal</title>
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    <style>
+        .resend-container {
+            max-width: 500px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .resend-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .resend-header h1 {
+            color: #2c5530;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-box {
+            background: #f0f8ff;
+            border: 1px solid #4a7c59;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c5530;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #4a7c59;
+        }
+        
+        .btn-resend {
+            width: 100%;
+            background: linear-gradient(135deg, #4a7c59 0%, #5d9870 100%);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .btn-resend:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-resend:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .back-links {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        
+        .back-links a {
+            color: #4a7c59;
+            text-decoration: none;
+            margin: 0 0.5rem;
+        }
+        
+        .back-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .messages {
+            margin-bottom: 1.5rem;
+        }
+        
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .rate-limit-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #856404;
+            font-size: 0.9rem;
+        }
+        
+        #countdown {
+            font-weight: 600;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-container">
+            <img src="{% static 'img/logo_branca_header.png' %}" alt="Logo ClimaCocal" class="logo" />
+            <div class="phrase-area">
+                <h1 class="header-phrase">Reenviar</h1>
+                <h1 class="header-phrase">Verificação</h1>
+            </div>
+        </div>
+    </header>
+
+    <div class="resend-container">
+        <div class="resend-header">
+            <h1><i class="fas fa-paper-plane"></i> Reenviar Verificação</h1>
+            <p>Digite seu email para receber um novo link de verificação</p>
+        </div>
+
+        <div class="info-box">
+            <h3><i class="fas fa-info-circle"></i> Sobre o reenvio:</h3>
+            <ul style="text-align: left; max-width: 350px; margin: 1rem auto;">
+                <li>📧 Novo email será enviado em até 2 minutos</li>
+                <li>🕐 Link válido por 24 horas</li>
+                <li>📱 Verifique também a pasta de SPAM</li>
+                <li>✅ Apenas emails não verificados podem reenviar</li>
+            </ul>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" id="resendForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="email">
+                    <i class="fas fa-envelope"></i> Email para Verificação
+                </label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="Digite o email cadastrado"
+                       value="{{ request.POST.email|default:'' }}">
+            </div>
+
+            <button type="submit" class="btn-resend" id="submitBtn">
+                <i class="fas fa-paper-plane"></i> 
+                <span id="btnText">Reenviar Verificação</span>
+            </button>
+        </form>
+
+        <div class="rate-limit-info">
+            <strong><i class="fas fa-clock"></i> Limite de envios:</strong>
+            <br>Para evitar spam, você pode reenviar a cada 2 minutos.
+            <div id="countdown"></div>
+        </div>
+
+        <div class="back-links">
+            <a href="{% url 'climber-register' %}">
+                <i class="fas fa-user-plus"></i> Novo Cadastro
+            </a>
+            |
+            <a href="{% url 'home' %}">
+                <i class="fas fa-home"></i> Voltar ao Início
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let canSubmit = true;
+        let countdownTimer;
+        
+        // Form submission with rate limiting
+        document.getElementById('resendForm').addEventListener('submit', function(e) {
+            const email = document.getElementById('email').value.trim();
+            
+            if (!email) {
+                alert('Digite um email válido.');
+                e.preventDefault();
+                return;
+            }
+            
+            if (!canSubmit) {
+                e.preventDefault();
+                return;
+            }
+            
+            // Start countdown
+            startCountdown();
+        });
+        
+        function startCountdown() {
+            canSubmit = false;
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const countdown = document.getElementById('countdown');
+            
+            submitBtn.disabled = true;
+            
+            let seconds = 120; // 2 minutes
+            
+            countdownTimer = setInterval(() => {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                
+                btnText.textContent = `Aguarde ${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+                countdown.innerHTML = `<br>Próximo reenvio em: <strong>${minutes}:${remainingSeconds.toString().padStart(2, '0')}</strong>`;
+                
+                seconds--;
+                
+                if (seconds < 0) {
+                    clearInterval(countdownTimer);
+                    canSubmit = true;
+                    submitBtn.disabled = false;
+                    btnText.textContent = 'Reenviar Verificação';
+                    countdown.innerHTML = '<br><strong style="color: #28a745;">✅ Pode reenviar agora!</strong>';
+                }
+            }, 1000);
+        }
+        
+        // Check if we should start countdown (in case of page reload after submit)
+        window.addEventListener('load', function() {
+            const messages = document.querySelectorAll('.alert-success');
+            if (messages.length > 0) {
+                // If there's a success message, start countdown
+                setTimeout(startCountdown, 1000);
+            }
+        });
+        
+        // Email validation
+        document.getElementById('email').addEventListener('input', function() {
+            const email = this.value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (email.includes('@') && email.includes('.') && canSubmit) {
+                submitBtn.style.opacity = '1';
+            } else {
+                submitBtn.style.opacity = '0.7';
+            }
+        });
+        
+        // Auto-focus email field
+        document.getElementById('email').focus();
+    </script>
+</body>
+</html>

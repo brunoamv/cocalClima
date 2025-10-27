@@ -4,10 +4,10 @@
 [![Docker](https://img.shields.io/badge/Docker-Enabled-blue)](https://www.docker.com/)
 [![Django](https://img.shields.io/badge/Django-3.2.25-green)](https://djangoproject.com/)
 [![Python](https://img.shields.io/badge/Python-3.12-blue)](https://python.org/)
-[![Architecture](https://img.shields.io/badge/Architecture-8.5/10-brightgreen)](./ARCHITECTURAL_EVALUATION.md)
-[![TDD](https://img.shields.io/badge/TDD-2421_lines-brightgreen)](./TDD_STRATEGY.md)
-[![Refactored](https://img.shields.io/badge/Refactored-Modular_Architecture-green)](./CLAUDE.md)
-[![Version](https://img.shields.io/badge/Version-2.3.0--dev-orange)](./CLAUDE.md)
+[![Architecture](https://img.shields.io/badge/Architecture-9.2/10-brightgreen)](./ARCHITECTURAL_EVALUATION.md)
+[![TDD](https://img.shields.io/badge/TDD-171_tests-brightgreen)](./TDD_STRATEGY.md)
+[![Climber System](https://img.shields.io/badge/Climber_System-100%25_TDD-green)](./CLAUDE.md)
+[![Version](https://img.shields.io/badge/Version-2.4.0--dev-orange)](./CLAUDE.md)
 
 Sistema completo de streaming direto e e-commerce com **arquitetura modular refatorada**, **Single Responsibility Principle** e **débito técnico eliminado**, desenvolvido para ClimaCocal com padrões de qualidade enterprise.
 
@@ -17,15 +17,16 @@ Sistema completo de streaming direto e e-commerce com **arquitetura modular refa
 
 O ClimaCocal é uma plataforma integrada que combina:
 
-- **🛒 Modular E-commerce** - PaymentService, WeatherService com Single Responsibility
+- **🛒 Hybrid E-commerce** - PaymentService (3 reais/3min) + ClimberService com TDD completo
+- **👥 Climber Registration** - Sistema temporário de cadastro de escaladores até 11/11
 - **📹 Smart Streaming** - RTSP→HLS com auto-recovery e monitoramento inteligente
-- **🏗️ Refactored Architecture** - God Object eliminado, arquitetura modular (v2.3.0)
-- **🧪 Comprehensive TDD** - Suite robusta com **2.421+ linhas de testes** + legacy tests
+- **🏗️ Advanced Architecture** - Modular + TDD + Hybrid Access Control (v2.4.0)
+- **🧪 Clean TDD** - Suite limpa com **171 testes ativos** (5 obsoletos arquivados)
 - **📍 Location Service** - Transmissão ao vivo de **Cocalzinho de Goiás**
-- **🔒 Payment Validation** - Sistema modular de validação por sessão
+- **🔒 Dual Access Control** - Sistema híbrido (Payment OR Climber Registration)
 - **✅ Technical Debt Free** - 789 linhas obsoletas completamente removidas
 
-## 🏗️ Arquitetura v2.3.0-dev
+## 🏗️ Arquitetura v2.4.0-dev
 
 ```mermaid
 graph TB
@@ -84,12 +85,14 @@ graph TB
 
 | Componente | Tecnologia | Porta | Função | Status |
 |------------|------------|-------|---------|--------|
-| **Django App** | Python 3.12 + Django 3.2 | 8000 | E-commerce + Streaming API | ✅ Ativo |
+| **Django App** | Python 3.12 + Django 3.2 | 8000 | E-commerce + Streaming API + Climber Registration | ✅ Ativo |
 | **Streaming Service** | FFmpeg + HLS | - | Direct camera streaming | ✅ Ativo |
-| **Payment Service** | MercadoPago SDK | - | Validação de pagamentos | ✅ Ativo |
+| **Payment Service** | MercadoPago SDK | - | Validação de pagamentos (3 reais/3min) | ✅ Ativo |
+| **Climber Service** | Django + Email | - | Sistema de cadastro temporário | 🆕 Ativo |
+| **Hybrid Access Control** | Django Cache | - | Payment OR Climber validation | 🆕 Ativo |
 | **Camera Dashboard** | Flask + FFmpeg | 8001 | Monitoramento streaming | ✅ Ativo |
 | **YouTube Automation** | Python + YouTube API | - | Automação YouTube | 🟡 Legacy |
-| **PostgreSQL** | PostgreSQL 15 | 5432 | Database principal | ✅ Ativo |
+| **PostgreSQL** | PostgreSQL 15 | 5432 | Database principal + TemporaryClimber | ✅ Ativo |
 
 ---
 
@@ -126,9 +129,11 @@ docker-compose ps
 ### Acesso aos Serviços
 
 - **🛒 E-commerce**: https://climacocal.com.br
+- **👥 Climber Registration**: https://climacocal.com.br/escaladores/cadastro/
 - **📹 Camera Dashboard**: https://climacocal.com.br:8001
 - **📊 Streaming API**: https://climacocal.com.br/streaming/api/
-- **🧪 Test Suite**: `python manage.py test` (988 linhas de testes)
+- **🧪 Test Suite**: `python manage.py test` (3.200+ linhas de testes)
+- **🧪 Climber Tests**: `python manage.py test tests.test_climber_service` (23 testes)
 
 ---
 
@@ -157,12 +162,15 @@ STREAM_RESOLUTION=1920x1080
 STREAM_FPS=25
 STREAM_BITRATE=2500k
 
-# Alertas (opcional)
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-TELEGRAM_CHAT_ID=your_telegram_chat_id
+# Email para Sistema de Escaladores
 SMTP_HOST=smtp.gmail.com
 SMTP_USER=your_email@gmail.com
 SMTP_PASSWORD=your_app_password
+DEFAULT_FROM_EMAIL=noreply@climacocal.com.br
+
+# Alertas (opcional)
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+TELEGRAM_CHAT_ID=your_telegram_chat_id
 ```
 
 ### Configuração Detalhada

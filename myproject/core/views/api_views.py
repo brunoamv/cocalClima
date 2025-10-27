@@ -19,6 +19,11 @@ def payment_status(request):
     return JsonResponse({"status": status})
 
 
+def check_payment_status(request):
+    """Legacy alias for payment_status for backward compatibility."""
+    return payment_status(request)
+
+
 def weather(request):
     """Get current weather data API endpoint."""
     weather_service = WeatherService()

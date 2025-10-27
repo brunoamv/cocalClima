@@ -4,6 +4,7 @@ Enhanced views for camera streaming with payment validation
 """
 import os
 import mimetypes
+import time
 from django.http import JsonResponse, HttpResponse, StreamingHttpResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -25,11 +26,12 @@ class CameraStreamView(View):
     def get(self, request):
         """Serve HLS playlist for paid users"""
         
-        # Check payment status
-        if not payment_service.is_access_granted():
+        # Check access (payment or climber)
+        if not payment_service.is_access_granted(request):
             logger.warning(f"Unauthorized camera access attempt from {request.META.get('REMOTE_ADDR')}")
+            access_message = payment_service.get_access_message(request, camera_available=True)
             return HttpResponse(
-                "❌ Acesso negado. Pagamento necessário para visualizar câmera ao vivo.",
+                f"❌ Acesso negado. {access_message}",
                 status=403,
                 content_type="text/plain"
             )
@@ -70,12 +72,11 @@ class CameraStreamView(View):
 class CameraSegmentView(View):
     """Serve HLS segments with payment validation"""
     
-    @method_decorator(never_cache)
     def get(self, request, segment_name):
         """Serve HLS video segments for paid users"""
         
-        # Check payment status
-        if not payment_service.is_access_granted():
+        # Check access (payment or climber)
+        if not payment_service.is_access_granted(request):
             logger.warning(f"Unauthorized segment access attempt: {segment_name} from {request.META.get('REMOTE_ADDR')}")
             raise Http404("Acesso negado")
         
@@ -121,31 +122,49 @@ class CameraSegmentView(View):
 @require_http_methods(["GET"])
 @never_cache
 def camera_status_api(request):
-    """API endpoint for camera and payment status"""
+    """API endpoint for camera and access status (payment + climber)"""
     
+    # Get access type and status
+    access_type = payment_service.get_access_type(request)
     payment_status = payment_service.check_payment_status()
     
-    # Force camera test to get fresh status
-    camera_service.test_camera_connection()
+    # Get camera status with improved detection
     camera_status = camera_service.get_status()
     
     # Use FFmpeg HLS streaming instead of YouTube
     camera_available = camera_status['camera_status'] == 'online'
     
-    # BYPASS: If playlist is available, camera is working regardless of cache status
-    playlist_working = camera_status['playlist_available'] and camera_status['process_active']
-    if playlist_working:
+    # BYPASS: If streaming is active (internal or external) OR playlist available, camera is working
+    streaming_active = camera_status['is_streaming'] or camera_status.get('external_stream_detected', False)
+    playlist_available = camera_status['playlist_available']
+    
+    if streaming_active or playlist_available:
         camera_available = True
         camera_status['camera_status'] = 'online'
     
     # CRITICAL: Do not grant access if camera is offline
     if not camera_available:
-        logger.warning(f"Camera offline - denying payment flow")
+        logger.warning(f"Camera offline - denying access flow")
         access_granted = False
         stream_url = None
     else:
-        access_granted = payment_service.is_access_granted() and camera_available
+        access_granted = payment_service.is_access_granted(request) and camera_available
         stream_url = "/streaming/camera/stream.m3u8" if access_granted else None
+    
+    # Get user info based on access type
+    user_info = {}
+    if access_type == "climber":
+        user_info = {
+            "type": "climber",
+            "name": request.session.get('climber_name', 'Escalador'),
+            "access_until": request.session.get('climber_access_until')
+        }
+    elif access_type == "payment":
+        user_info = {
+            "type": "payment", 
+            "name": "Cliente Pagante",
+            "access_until": None  # Payment has timeout in cache
+        }
     
     response_data = {
         "camera_available": camera_available,
@@ -153,12 +172,15 @@ def camera_status_api(request):
         "streaming_status": camera_status['streaming_status'],
         "payment_status": payment_status,
         "access_granted": access_granted,
-        "message": payment_service.get_access_message(payment_status, camera_available),
+        "access_type": access_type,
+        "user_info": user_info,
+        "message": payment_service.get_access_message(request, camera_available),
         "stream_url": stream_url,
         "technical_details": {
             "is_streaming": camera_status['is_streaming'],
-            "process_active": camera_status['process_active'],
-            "playlist_available": camera_status['playlist_available']
+            "process_active": camera_status.get('process_active', False),
+            "playlist_available": camera_status['playlist_available'],
+            "external_stream_detected": camera_status.get('external_stream_detected', False)
         }
     }
     
@@ -252,7 +274,7 @@ def health_check(request):
     # Determine overall health
     healthy = (
         camera_status['camera_status'] in ['online', 'unknown'] and
-        (not camera_status['is_streaming'] or camera_status['process_active'])
+        (not camera_status['is_streaming'] or camera_status.get('process_active', False))
     )
     
     response_data = {

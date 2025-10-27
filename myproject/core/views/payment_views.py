@@ -54,13 +54,22 @@ def test_payment_direct(request):
     """
     Direct access to test page with valid payment state.
     For camera/streaming development testing.
+    
+    IMPORTANT: This endpoint simulates approved payment for testing.
     """
+    # Set correct payment status for testing
     payment_service = PaymentService()
-    payment_service.set_payment_status("approved")
+    payment_service.set_payment_status("approved", timeout=600)
+    
+    # Log for debugging
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.warning(f"TEST PAYMENT DIRECT accessed from {request.META.get('REMOTE_ADDR')} - This should NOT affect production flow")
     
     context = {
         'test_mode': True,
-        'message': 'MODO TESTE - Pagamento simulado'
+        'message': 'MODO TESTE - Pagamento simulado (NÃO afeta fluxo normal)',
+        'warning': 'Este é um endpoint de teste. Use apenas para desenvolvimento.'
     }
     return render(request, "payment_success.html", context)
 

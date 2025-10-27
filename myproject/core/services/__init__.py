@@ -8,9 +8,11 @@ following Single Responsibility Principle and Test-Driven Development.
 from .payment_service import PaymentService
 from .youtube_service import YouTubeService  
 from .weather_service import WeatherService
+from .climber_service import ClimberService
 
 __all__ = [
     'PaymentService',
     'YouTubeService', 
     'WeatherService',
+    'ClimberService',
 ]

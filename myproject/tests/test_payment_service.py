@@ -21,7 +21,7 @@ class PaymentServiceTest(TestCase):
     def tearDown(self):
         cache.clear()
     
-    @patch('mercadopago.SDK')
+    @patch('core.services.payment_service.mercadopago.SDK')
     def test_create_preference_success(self, mock_sdk):
         """Test successful payment preference creation"""
         # Arrange
@@ -33,19 +33,22 @@ class PaymentServiceTest(TestCase):
             'response': {'init_point': 'https://test.mercadopago.com/checkout'}
         }
         
+        # Create service after mock setup
+        payment_service = PaymentService()
+        
         # Act
-        result = self.payment_service.create_preference(
+        result = payment_service.create_preference(
             title="Teste acesso 3 minutos",
             price=3.00
         )
         
         # Assert
         self.assertIsNotNone(result)
-        self.assertIn('init_point', result)
-        self.assertEqual(result['init_point'], 'https://test.mercadopago.com/checkout')
+        self.assertIsInstance(result, str)
+        self.assertEqual(result, 'https://test.mercadopago.com/checkout')
         mock_preference.create.assert_called_once()
     
-    @patch('mercadopago.SDK')
+    @patch('core.services.payment_service.mercadopago.SDK')
     def test_create_preference_failure(self, mock_sdk):
         """Test payment preference creation failure"""
         # Arrange
@@ -57,8 +60,11 @@ class PaymentServiceTest(TestCase):
             'error': 'Invalid credentials'
         }
         
+        # Create service after mock setup
+        payment_service = PaymentService()
+        
         # Act
-        result = self.payment_service.create_preference(
+        result = payment_service.create_preference(
             title="Teste acesso 3 minutos", 
             price=3.00
         )

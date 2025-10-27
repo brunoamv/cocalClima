@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verificado - ClimaCocal</title>
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    <style>
+        .verified-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .verified-icon {
+            font-size: 5rem;
+            color: #28a745;
+            margin-bottom: 1rem;
+            animation: checkmark 1s ease-in-out;
+        }
+        
+        @keyframes checkmark {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.3);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .verified-header h1 {
+            color: #2c5530;
+            margin-bottom: 1rem;
+        }
+        
+        .access-info {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #28a745;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .access-info h2 {
+            color: #155724;
+            margin-bottom: 1rem;
+        }
+        
+        .countdown-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #856404;
+        }
+        
+        .countdown {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #721c24;
+        }
+        
+        .features-list {
+            text-align: left;
+            max-width: 400px;
+            margin: 1rem auto;
+        }
+        
+        .features-list li {
+            margin-bottom: 0.8rem;
+            padding-left: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .btn-watch {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin: 1.5rem 0;
+            transition: transform 0.3s;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .btn-watch:hover {
+            transform: translateY(-3px);
+            text-decoration: none;
+            color: white;
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0.5rem;
+            transition: transform 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: white;
+        }
+        
+        .welcome-msg {
+            color: #666;
+            font-size: 1.1rem;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-container">
+            <img src="{% static 'img/logo_branca_header.png' %}" alt="Logo ClimaCocal" class="logo" />
+            <div class="phrase-area">
+                <h1 class="header-phrase">Bem-vindo</h1>
+                <h1 class="header-phrase">{{ climber.name|title }}</h1>
+            </div>
+        </div>
+    </header>
+
+    <div class="verified-container">
+        <div class="verified-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        
+        <div class="verified-header">
+            <h1>🎉 Email Verificado com Sucesso!</h1>
+            <div class="welcome-msg">
+                Bem-vindo(a), <strong>{{ climber.name }}</strong>!<br>
+                Seu acesso foi liberado com sucesso.
+            </div>
+        </div>
+
+        <div class="access-info">
+            <h2><i class="fas fa-video"></i> Acesso Liberado!</h2>
+            
+            <div class="features-list">
+                <ul>
+                    <li>📹 <strong>Transmissão ao vivo</strong> da câmera</li>
+                    <li>🌤️ <strong>Condições climáticas</strong> em tempo real</li>
+                    <li>🏔️ <strong>Visão 24h</strong> do local de escalada</li>
+                    <li>📱 <strong>Acesso móvel</strong> e desktop</li>
+                </ul>
+            </div>
+
+            <div class="countdown-box">
+                <strong><i class="fas fa-calendar-alt"></i> Seu acesso é válido até:</strong>
+                <div class="countdown">
+                    {{ access_until|date:"d/m/Y \à\s H:i" }}
+                </div>
+                <div id="timeRemaining"></div>
+            </div>
+        </div>
+
+        <div>
+            <a href="{% url 'climber-access' %}" class="btn-watch">
+                <i class="fas fa-play-circle"></i> Assistir Transmissão
+            </a>
+        </div>
+
+        <div>
+            <a href="{% url 'home' %}" class="btn-secondary">
+                <i class="fas fa-home"></i> Página Inicial
+            </a>
+            
+            <a href="{% url 'climber-logout' %}" class="btn-secondary">
+                <i class="fas fa-sign-out-alt"></i> Sair
+            </a>
+        </div>
+
+        <div style="margin-top: 2rem; color: #666; font-size: 0.9rem;">
+            <p>
+                <i class="fas fa-envelope-circle-check"></i> 
+                Email verificado em {{ climber.email_verified_at|date:"d/m/Y \à\s H:i" }}
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Countdown timer
+        function updateCountdown() {
+            const accessUntil = new Date('{{ access_until|date:"Y-m-d H:i:s" }}');
+            const now = new Date();
+            const timeDiff = accessUntil - now;
+            
+            if (timeDiff > 0) {
+                const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                
+                document.getElementById('timeRemaining').innerHTML = `
+                    <small style="color: #856404;">
+                        ⏳ Restam: <strong>${days} dias, ${hours}h ${minutes}min</strong>
+                    </small>
+                `;
+            } else {
+                document.getElementById('timeRemaining').innerHTML = `
+                    <small style="color: #721c24;">
+                        ⚠️ <strong>Acesso expirado</strong>
+                    </small>
+                `;
+            }
+        }
+        
+        // Update countdown every minute
+        updateCountdown();
+        setInterval(updateCountdown, 60000);
+        
+        // Confetti effect (simple version)
+        setTimeout(() => {
+            const colors = ['#28a745', '#20c997', '#ffc107', '#fd7e14'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'fixed';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.top = '-10px';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.borderRadius = '50%';
+                    confetti.style.pointerEvents = 'none';
+                    confetti.style.zIndex = '9999';
+                    confetti.style.animation = 'fall 3s linear forwards';
+                    
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 3000);
+                }, i * 100);
+            }
+        }, 500);
+        
+        // CSS animation for falling confetti
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fall {
+                to {
+                    transform: translateY(100vh) rotate(360deg);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
