@@ -99,6 +99,12 @@ class ClimberService:
             Para confirmar seu email e liberar o acesso, clique no link abaixo:
             {verification_url}
             
+            ✅ APÓS A VERIFICAÇÃO, ACESSE:
+            1. https://climacocal.com.br/escaladores/login/
+            2. Digite: {climber.email}
+            3. Clique: "Entrar"
+            4. Resultado: Redirecionamento automático para página de streaming
+            
             Se você não fez esse cadastro, pode ignorar este email.
             
             Atenciosamente,
@@ -138,15 +144,17 @@ class ClimberService:
             TemporaryClimber instance if verified, None otherwise
         """
         try:
-            # Find climber by token
-            climber = TemporaryClimber.objects.filter(
-                email_token=token,
-                email_verified=False
-            ).first()
+            # First, check if token exists at all
+            climber = TemporaryClimber.objects.filter(email_token=token).first()
             
             if not climber:
-                logger.warning(f"Invalid or expired verification token: {token}")
+                logger.warning(f"Invalid verification token: {token}")
                 return None
+            
+            # Check if already verified
+            if climber.email_verified:
+                logger.info(f"Email already verified for climber: {climber.email}")
+                return climber  # Return the climber to show success page
             
             # Mark as verified
             climber.email_verified = True

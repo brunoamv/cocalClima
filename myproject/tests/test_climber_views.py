@@ -266,7 +266,7 @@ class ClimberViewsTestCase(TestCase):
         
         # ASSERT - Verify access denied
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse('climber-register'))
+        self.assertRedirects(response, reverse('climber-login'))
 
     def test_climber_access_not_logged_in(self):
         """Test access page when not logged in."""
@@ -275,7 +275,7 @@ class ClimberViewsTestCase(TestCase):
         
         # ASSERT - Verify redirect to register
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse('climber-register'))
+        self.assertRedirects(response, reverse('climber-login'))
 
     def test_climber_logout(self):
         """Test climber logout functionality."""
@@ -510,7 +510,7 @@ class ClimberViewsIntegrationTestCase(TestCase):
         
         # Should be redirected due to expired access
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse('climber-register'))
+        self.assertRedirects(response, reverse('climber-login'))
 
     def test_inactive_climber_handling(self):
         """Test handling of inactive climber."""
@@ -533,7 +533,7 @@ class ClimberViewsIntegrationTestCase(TestCase):
         
         # Should be redirected due to inactive status
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse('climber-register'))
+        self.assertRedirects(response, reverse('climber-login'))
 
     def test_concurrent_access_tracking(self):
         """Test that concurrent access requests are handled correctly."""

@@ -46,5 +46,22 @@ class TemporaryClimber(models.Model):
             self.email_verified and 
             self.access_until > timezone.now()
         )
+    
+    def has_valid_access(self):
+        """Método para compatibilidade com ClimberService"""
+        return self.has_access
+    
+    def mark_access(self):
+        """Marca um acesso ao sistema"""
+        self.last_access = timezone.now()
+        self.access_count += 1
+        self.save(update_fields=['last_access', 'access_count'])
+    
+    def get_verification_url(self, request):
+        """Gera URL de verificação de email"""
+        from django.urls import reverse
+        return request.build_absolute_uri(
+            reverse('verify-email', kwargs={'token': str(self.email_token)})
+        )
 
 # Create your models here.

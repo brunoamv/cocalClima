@@ -82,6 +82,8 @@ def climber_register(request):
 
 def verify_email(request, token):
     """Verify climber email using token."""
+    from django.http import HttpResponse
+    
     try:
         # Verify token
         climber = ClimberService.verify_email(token)
@@ -90,22 +92,86 @@ def verify_email(request, token):
             # Login the climber
             ClimberService.login_climber(request, climber)
             
-            messages.success(request, 
-                f'Email verificado com sucesso! Acesso liberado até 11/11.')
-            
-            return render(request, 'climber/email_verified.html', {
-                'climber': climber,
-                'access_until': climber.access_until
-            })
+            # Return simple success page
+            html = f"""
+            <!DOCTYPE html>
+            <html lang="pt-br">
+            <head>
+                <meta charset="UTF-8">
+                <title>Email Verificado - ClimaCocal</title>
+                <style>
+                    body {{ font-family: Arial, sans-serif; text-align: center; padding: 50px; }}
+                    .success {{ color: green; background: #d4edda; padding: 20px; border-radius: 5px; }}
+                    .btn {{ background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }}
+                </style>
+            </head>
+            <body>
+                <div class="success">
+                    <h1>✅ Email Verificado com Sucesso!</h1>
+                    <p>Seu email <strong>{climber.email}</strong> foi verificado.</p>
+                    <p>Acesso liberado até <strong>11 de Novembro</strong>!</p>
+                    <br>
+                    <a href="/escaladores/acesso/" class="btn">Acessar Streaming</a>
+                    <a href="/" class="btn">Voltar ao Início</a>
+                </div>
+            </body>
+            </html>
+            """
+            return HttpResponse(html)
         else:
-            messages.error(request, 
-                'Link de verificação inválido ou expirado.')
-            return render(request, 'climber/verification_error.html')
+            # Return simple error page
+            html = """
+            <!DOCTYPE html>
+            <html lang="pt-br">
+            <head>
+                <meta charset="UTF-8">
+                <title>Erro na Verificação - ClimaCocal</title>
+                <style>
+                    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+                    .error { color: red; background: #f8d7da; padding: 20px; border-radius: 5px; }
+                    .btn { background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
+                </style>
+            </head>
+            <body>
+                <div class="error">
+                    <h1>❌ Erro na Verificação</h1>
+                    <p>Link de verificação inválido ou expirado.</p>
+                    <br>
+                    <a href="/escaladores/cadastro/" class="btn">Novo Cadastro</a>
+                    <a href="/" class="btn">Voltar ao Início</a>
+                </div>
+            </body>
+            </html>
+            """
+            return HttpResponse(html)
             
     except Exception as e:
         logger.error(f"Error verifying email: {e}")
-        messages.error(request, 'Erro interno na verificação.')
-        return render(request, 'climber/verification_error.html')
+        # Return simple error page
+        html = f"""
+        <!DOCTYPE html>
+        <html lang="pt-br">
+        <head>
+            <meta charset="UTF-8">
+            <title>Erro Interno - ClimaCocal</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; text-align: center; padding: 50px; }}
+                .error {{ color: red; background: #f8d7da; padding: 20px; border-radius: 5px; }}
+                .btn {{ background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }}
+            </style>
+        </head>
+        <body>
+            <div class="error">
+                <h1>❌ Erro Interno</h1>
+                <p>Erro na verificação: {str(e)}</p>
+                <br>
+                <a href="/escaladores/cadastro/" class="btn">Tentar Novamente</a>
+                <a href="/" class="btn">Voltar ao Início</a>
+            </div>
+        </body>
+        </html>
+        """
+        return HttpResponse(html)
 
 
 def climber_status(request):
@@ -149,8 +215,8 @@ def climber_access(request):
         
         if not has_access:
             messages.error(request, 
-                'Acesso negado. Faça o cadastro ou verifique seu email.')
-            return redirect('climber-register')
+                'Acesso negado. Faça login com seu email verificado.')
+            return redirect('climber-login')
         
         # Get climber info from session
         climber_name = request.session.get('climber_name', 'Escalador')
@@ -164,7 +230,7 @@ def climber_access(request):
     except Exception as e:
         logger.error(f"Error in climber access: {e}")
         messages.error(request, 'Erro interno.')
-        return redirect('climber-register')
+        return redirect('climber-login')
 
 
 def climber_logout(request):
@@ -198,6 +264,47 @@ def climber_admin_stats(request):
             'success': False,
             'error': 'Erro interno'
         }, status=500)
+
+
+def climber_login(request):
+    """Login page for verified climbers."""
+    if request.method == 'POST':
+        try:
+            email = request.POST.get('email', '').strip().lower()
+            
+            if not email:
+                messages.error(request, 'Email é obrigatório.')
+                return render(request, 'climber/login.html')
+            
+            # Find verified climber
+            climber = TemporaryClimber.objects.filter(
+                email=email,
+                email_verified=True
+            ).first()
+            
+            if not climber:
+                messages.error(request, 
+                    'Email não encontrado ou não verificado. Verifique se você confirmou o email de verificação.')
+                return render(request, 'climber/login.html')
+            
+            # Check if access is still valid
+            if not climber.has_access:
+                messages.error(request, 
+                    'Seu acesso temporário expirou. Entre em contato para renovação.')
+                return render(request, 'climber/login.html')
+            
+            # Login the climber
+            ClimberService.login_climber(request, climber)
+            messages.success(request, f'Login realizado com sucesso! Bem-vindo, {climber.name}.')
+            
+            return redirect('climber-access')
+            
+        except Exception as e:
+            logger.error(f"Error in climber login: {e}")
+            messages.error(request, 'Erro interno.')
+            return render(request, 'climber/login.html')
+    
+    return render(request, 'climber/login.html')
 
 
 def resend_verification(request):

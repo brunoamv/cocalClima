@@ -337,9 +337,18 @@ class PaymentValidationService:
         return cache.get("payment_status", "pending")
     
     @staticmethod
-    def is_access_granted() -> bool:
-        """Check if user has valid payment for camera access"""
-        return PaymentValidationService.check_payment_status() == "approved"
+    def is_access_granted(request=None) -> bool:
+        """Check if user has valid payment OR climber access for camera access"""
+        # Check payment status
+        payment_access = PaymentValidationService.check_payment_status() == "approved"
+        
+        # Check climber access if request provided
+        climber_access = False
+        if request:
+            from core.services.climber_service import ClimberService
+            climber_access = ClimberService.check_climber_access(request)
+        
+        return payment_access or climber_access
     
     @staticmethod
     def get_access_message(payment_status: str, camera_available: bool) -> str:

@@ -155,3 +155,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Mercado Pago Settings (from environment variables)
 MERCADO_PAGO_PUBLIC_KEY = get_env_variable('MERCADO_PAGO_PUBLIC_KEY')
 MERCADO_PAGO_ACCESS_TOKEN = get_env_variable('MERCADO_PAGO_ACCESS_TOKEN')
+
+# Email Configuration
+EMAIL_BACKEND = get_env_variable('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+
+# SMTP Configuration (when using SMTP backend)
+EMAIL_HOST = get_env_variable('EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(get_env_variable('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = get_env_variable('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_USE_SSL = get_env_variable('EMAIL_USE_SSL', 'False').lower() == 'true'
+EMAIL_HOST_USER = get_env_variable('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = get_env_variable('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = get_env_variable('DEFAULT_FROM_EMAIL', 'noreply@climacocal.com.br')
+
+# For development: Use console backend to print emails to console  
+# Only override to console if DEBUG=True and no EMAIL_BACKEND is explicitly set
+if DEBUG and get_env_variable('EMAIL_BACKEND', None) is None:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
