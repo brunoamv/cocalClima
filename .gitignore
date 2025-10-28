@@ -28,3 +28,4 @@ youtube/
 scripts/logs/camera_stream/
 camera_stream/
 cookies.txt
+*.sqlite3
