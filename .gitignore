@@ -27,3 +27,4 @@ youtube/
 # Arquivos com log
 scripts/logs/camera_stream/
 camera_stream/
+cookies.txt
