@@ -45,11 +45,19 @@ def climber_register(request):
                 messages.error(request, 'Formato de email inválido.')
                 return render(request, 'climber/register.html')
             
-            # Check if email already exists and is verified
+            # Check if email already exists and has ACTIVE access
             existing = TemporaryClimber.objects.filter(email=email, email_verified=True).first()
-            if existing:
-                messages.error(request, 'Email já cadastrado e verificado.')
-                return render(request, 'climber/register.html')
+            if existing and existing.has_access:
+                # User has active access - redirect to login instead
+                messages.info(request, 
+                    f'Email já possui acesso ativo até {existing.access_until.strftime("%d/%m/%Y")}. '
+                    'Faça login para acessar.')
+                return redirect('climber-login')
+            elif existing and not existing.has_access:
+                # User exists but access expired - allow renewal
+                messages.info(request, 
+                    'Seu acesso anterior expirou. Renovando acesso automáticamente...')
+                # Continue with registration to renew access
             
             # Register climber
             climber = ClimberService.register_climber(name, email, phone)
@@ -218,6 +226,12 @@ def climber_access(request):
                 'Acesso negado. Faça login com seu email verificado.')
             return redirect('climber-login')
         
+        # Set payment status for streaming access
+        # This is necessary for the streaming service to recognize the climber's access
+        from core.services.payment_service import PaymentService
+        payment_service = PaymentService()
+        payment_service.set_payment_status("approved", timeout=600)  # 10 minutes access
+        
         # Get climber info from session
         climber_name = request.session.get('climber_name', 'Escalador')
         access_until = request.session.get('climber_access_until')
@@ -235,6 +249,11 @@ def climber_access(request):
 
 def climber_logout(request):
     """Logout climber and redirect to homepage."""
+    # Clear payment status to remove streaming access
+    from core.services.payment_service import PaymentService
+    payment_service = PaymentService()
+    payment_service.set_payment_status("pending")  # Clear the approved status
+    
     ClimberService.logout_climber(request)
     messages.success(request, 'Logout realizado com sucesso.')
     return redirect('home')
@@ -346,3 +365,91 @@ def resend_verification(request):
             return render(request, 'climber/resend_verification.html')
     
     return render(request, 'climber/resend_verification.html')
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def renew_climber_access_admin(request):
+    """Admin endpoint to renew climber access."""
+    try:
+        # Simple admin check
+        if not request.user.is_staff:
+            return JsonResponse({
+                'success': False,
+                'error': 'Admin privileges required'
+            }, status=403)
+        
+        email = request.POST.get('email', '').strip().lower()
+        days = int(request.POST.get('days', 30))
+        
+        if not email:
+            return JsonResponse({
+                'success': False,
+                'error': 'Email is required'
+            }, status=400)
+        
+        # Renew access
+        success = ClimberService.renew_climber_access(email, days)
+        
+        if success:
+            return JsonResponse({
+                'success': True,
+                'message': f'Access renewed for {email} for {days} days'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'Failed to renew access - climber not found'
+            }, status=404)
+            
+    except ValueError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid days parameter'
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Error in admin access renewal: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': 'Internal error'
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+def list_expired_climbers_admin(request):
+    """Admin endpoint to list expired climbers."""
+    try:
+        # Simple admin check
+        if not request.user.is_staff:
+            raise Http404()
+        
+        expired_climbers = ClimberService.get_expired_climbers()
+        
+        climbers_data = []
+        for climber in expired_climbers:
+            climbers_data.append({
+                'id': climber.id,
+                'name': climber.name,
+                'email': climber.email,
+                'phone': climber.phone,
+                'access_until': climber.access_until.isoformat(),
+                'days_expired': (timezone.now() - climber.access_until).days,
+                'last_access': climber.last_access.isoformat() if climber.last_access else None,
+                'access_count': climber.access_count
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'expired_climbers': climbers_data,
+            'total_expired': len(climbers_data),
+            'timestamp': timezone.now().isoformat()
+        })
+        
+    except Http404:
+        raise
+    except Exception as e:
+        logger.error(f"Error listing expired climbers: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': 'Internal error'
+        }, status=500)

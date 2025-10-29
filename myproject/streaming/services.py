@@ -303,13 +303,16 @@ class CameraStreamingService:
         
         # Check if stream is actually running by examining files
         stream_active = False
+        external_stream_detected = False
+        
         if playlist_exists:
             try:
                 file_age = time.time() - playlist_path.stat().st_mtime
                 stream_active = file_age < 30  # Recent playlist indicates active stream
+                external_stream_detected = stream_active and not self.is_streaming
                 
                 # If we detect active external streaming, update our status
-                if stream_active and not self.is_streaming:
+                if external_stream_detected:
                     logger.info("External streaming detected, updating status")
                     streaming_status = 'active'
                     cache.set('streaming_status', 'active', timeout=300)
@@ -317,14 +320,18 @@ class CameraStreamingService:
             except Exception as e:
                 logger.error(f"Error checking playlist age: {e}")
         
+        # Final status determination
+        is_streaming_final = self.is_streaming or stream_active
+        streaming_status_final = 'active' if is_streaming_final else 'stopped'
+        
         return {
-            'is_streaming': self.is_streaming or stream_active,  # Include external streams
+            'is_streaming': is_streaming_final,
             'camera_status': camera_status,
-            'streaming_status': streaming_status,
+            'streaming_status': streaming_status_final,
             'playlist_available': playlist_exists,
             'process_active': self.ffmpeg_process is not None and self.ffmpeg_process.poll() is None,
             'stream_config': self.stream_config,
-            'external_stream_detected': stream_active and not self.is_streaming
+            'external_stream_detected': external_stream_detected
         }
 
 

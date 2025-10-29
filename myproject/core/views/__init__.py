@@ -16,5 +16,6 @@ from .api_views import youtube_live_check, weather, check_payment_status, get_st
 from .legacy_views import *
 from .climber_views import (
     climber_register, verify_email, climber_status, climber_access,
-    climber_logout, climber_admin_stats, resend_verification, climber_login
+    climber_logout, climber_admin_stats, resend_verification, climber_login,
+    renew_climber_access_admin, list_expired_climbers_admin
 )

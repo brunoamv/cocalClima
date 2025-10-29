@@ -3,6 +3,7 @@ Direct Camera Streaming Views
 Enhanced views for camera streaming with payment validation
 """
 import os
+import time
 import mimetypes
 from django.http import JsonResponse, HttpResponse, StreamingHttpResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
@@ -133,32 +134,44 @@ def camera_status_api(request):
     camera_available = camera_status['camera_status'] == 'online'
     
     # BYPASS: If playlist is available, camera is working regardless of cache status
-    playlist_working = camera_status['playlist_available'] and camera_status['process_active']
+    playlist_working = camera_status['playlist_available'] and camera_status.get('external_stream_detected', False)
     if playlist_working:
         camera_available = True
         camera_status['camera_status'] = 'online'
+    
+    # Use consistent streaming status from service
+    streaming_active = camera_status['is_streaming']
+    actual_streaming_status = camera_status['streaming_status']
     
     # CRITICAL: Do not grant access if camera is offline
     if not camera_available:
         logger.warning(f"Camera offline - denying payment flow")
         access_granted = False
         stream_url = None
+        has_access = False
     else:
-        access_granted = payment_service.is_access_granted() and camera_available
+        # Check both payment and climber access
+        has_access = payment_service.is_access_granted(request)
+        access_granted = has_access and camera_available
         stream_url = "/streaming/camera/stream.m3u8" if access_granted else None
     
+    # Determine user type for cleaner response
+    user_type = "climber" if (request and hasattr(request, 'climber_access') and request.climber_access) else "payment"
+    
     response_data = {
-        "camera_available": camera_available,
-        "camera_status": camera_status['camera_status'],
-        "streaming_status": camera_status['streaming_status'],
+        "has_access": has_access,
+        "user_type": user_type,
         "payment_status": payment_status,
-        "access_granted": access_granted,
-        "message": payment_service.get_access_message(payment_status, camera_available),
+        "camera_available": camera_available,
+        "streaming_active": streaming_active,
+        "playlist_available": camera_status['playlist_available'],
         "stream_url": stream_url,
-        "technical_details": {
-            "is_streaming": camera_status['is_streaming'],
+        "message": payment_service.get_access_message(payment_status, camera_available),
+        "technical": {
+            "is_streaming": streaming_active,
             "process_active": camera_status['process_active'],
-            "playlist_available": camera_status['playlist_available']
+            "camera_status": camera_status['camera_status'],
+            "streaming_status": actual_streaming_status
         }
     }
     

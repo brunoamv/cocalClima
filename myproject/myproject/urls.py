@@ -19,7 +19,7 @@ from django.conf.urls.static import static
 
 from django.urls import path, include
 
-from core.views import create_payment, payment_webhook, check_payment_status, home, payment_success ,payment_failure, payment_failure_safe , weather , youtube_live_check , get_stream_url, camera_stream, camera_segment, camera_status_api, test_payment_success, test_payment_direct, climber_register, verify_email, climber_status, climber_access, climber_logout, climber_admin_stats, resend_verification, climber_login 
+from core.views import create_payment, payment_webhook, check_payment_status, home, payment_success ,payment_failure, payment_failure_safe , weather , youtube_live_check , get_stream_url, camera_stream, camera_segment, camera_status_api, test_payment_success, test_payment_direct, climber_register, verify_email, climber_status, climber_access, climber_logout, climber_admin_stats, resend_verification, climber_login, renew_climber_access_admin, list_expired_climbers_admin 
 urlpatterns = [
     path("", home, name="home"),
     path("create-payment/", create_payment, name="create_payment"),
@@ -47,6 +47,8 @@ urlpatterns = [
     path("escaladores/acesso/", climber_access, name="climber-access"),
     path("escaladores/logout/", climber_logout, name="climber-logout"),
     path("escaladores/admin/stats/", climber_admin_stats, name="climber-admin-stats"),
+    path("escaladores/admin/expired/", list_expired_climbers_admin, name="list-expired-climbers"),
+    path("escaladores/admin/renew/", renew_climber_access_admin, name="renew-climber-access"),
     path("escaladores/reenviar-verificacao/", resend_verification, name="resend-verification"),
     
     # Legacy Camera Streaming URLs (for backward compatibility)

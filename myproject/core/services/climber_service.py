@@ -11,6 +11,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.core.cache import cache
 from typing import Optional, Dict, Any
+from datetime import timedelta
 from core.models import TemporaryClimber
 import uuid
 
@@ -38,9 +39,20 @@ class ClimberService:
             existing = TemporaryClimber.objects.filter(email=email).first()
             
             if existing:
-                # If email already verified, return existing
-                if existing.email_verified:
-                    logger.info(f"Climber already registered and verified: {email}")
+                # If email verified and still has access, return existing
+                if existing.email_verified and existing.has_access:
+                    logger.info(f"Climber already registered with active access: {email}")
+                    return existing
+                
+                # If email verified but access expired, renew access
+                elif existing.email_verified and not existing.has_access:
+                    logger.info(f"Renewing expired access for climber: {email}")
+                    existing.name = name
+                    existing.phone = phone
+                    existing.access_until = timezone.now() + timedelta(days=30)  # Renew for 30 days
+                    existing.email_verified = True  # Keep verified status
+                    existing.is_active = True
+                    existing.save()
                     return existing
                 
                 # If not verified, update name and resend verification
@@ -282,3 +294,54 @@ class ClimberService:
                 'currently_active': 0,
                 'pending_verification': 0
             }
+    
+    @staticmethod
+    def renew_climber_access(email: str, days: int = 30) -> bool:
+        """
+        Renew access for an existing climber.
+        
+        Args:
+            email: Climber's email address
+            days: Number of days to extend access (default: 30)
+            
+        Returns:
+            True if renewal successful, False otherwise
+        """
+        try:
+            climber = TemporaryClimber.objects.filter(email=email).first()
+            
+            if not climber:
+                logger.error(f"Climber not found for renewal: {email}")
+                return False
+            
+            # Renew access from now or extend current access if still active
+            if climber.has_access:
+                # Extend current access
+                climber.access_until = climber.access_until + timedelta(days=days)
+                logger.info(f"Extended access for {email} by {days} days")
+            else:
+                # Renew from now
+                climber.access_until = timezone.now() + timedelta(days=days)
+                logger.info(f"Renewed access for {email} for {days} days")
+            
+            climber.is_active = True
+            climber.save()
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error renewing climber access for {email}: {e}")
+            return False
+    
+    @staticmethod
+    def get_expired_climbers():
+        """
+        Get list of climbers with expired access.
+        
+        Returns:
+            QuerySet of expired climbers
+        """
+        return TemporaryClimber.objects.filter(
+            email_verified=True,
+            access_until__lt=timezone.now()
+        ).order_by('-access_until')
