@@ -4,8 +4,10 @@ import uuid
 from datetime import timedelta
 
 def get_default_access_until():
-    """Retorna a data/hora padrão para expiração do acesso (24 horas a partir de agora)"""
-    return timezone.now() + timedelta(hours=24)
+    """Retorna a data/hora padrão para expiração do acesso (11/11/2025 às 23:59)"""
+    from datetime import datetime
+    # Acesso até 11 de novembro de 2025 às 23:59 (horário de Brasília)
+    return timezone.datetime(2025, 11, 11, 23, 59, 59, tzinfo=timezone.utc)
 
 class TemporaryClimber(models.Model):
     """

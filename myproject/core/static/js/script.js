@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 let msg2 = document.getElementById("statusMsg2");
                 
                 // Update UI based on access status
-                if (data.access_granted) {
+                if (data.has_access) {
                     btn.disabled = false;
                     btn.textContent = "Assistir Ao Vivo";
                     msg.textContent = "✅ " + data.message;
@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
             fetch("/streaming/api/status/")
                 .then(response => response.json())
                 .then(data => {
-                    if (data.access_granted) {
+                    if (data.has_access) {
                         // User has access, show stream
                         showVideoStream(data.stream_url);
                     } else if (data.payment_status === "pending") {

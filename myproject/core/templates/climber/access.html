@@ -362,7 +362,7 @@
                 .then(data => {
                     updateStreamStatus(data);
                     
-                    if (data.access_granted && data.stream_url) {
+                    if (data.has_access && data.stream_url) {
                         loadHLSStream(data.stream_url);
                     } else {
                         showStreamError(data.message || 'Stream não disponível');
@@ -388,7 +388,7 @@
                 
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
                     console.log('Stream loaded successfully');
-                    updateStreamStatus({access_granted: true, camera_available: true});
+                    updateStreamStatus({has_access: true, camera_available: true});
                     document.getElementById('streamInfo').textContent = 'Stream carregado com sucesso';
                 });
                 
@@ -403,7 +403,7 @@
                 // Safari native HLS support
                 videoPlayer.src = streamUrl;
                 videoPlayer.addEventListener('loadedmetadata', function() {
-                    updateStreamStatus({access_granted: true, camera_available: true});
+                    updateStreamStatus({has_access: true, camera_available: true});
                 });
             } else {
                 showStreamError('Seu navegador não suporta HLS');
@@ -414,7 +414,7 @@
             const statusIndicator = document.getElementById('statusIndicator');
             const streamStatus = document.getElementById('streamStatus');
             
-            if (data.access_granted && data.camera_available) {
+            if (data.has_access && data.camera_available) {
                 statusIndicator.className = 'status-indicator status-live';
                 streamStatus.textContent = 'AO VIVO';
             } else {

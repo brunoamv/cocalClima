@@ -48,7 +48,7 @@ def streaming_status(request):
     camera_status = camera_service.get_status()
     
     # Check if streaming is available
-    camera_available = camera_status['camera_status'] == 'online'
+    camera_available = camera_status.get('camera_status') == 'online'
     playlist_working = camera_status['playlist_available'] and camera_status['process_active']
     
     if playlist_working:

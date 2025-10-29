@@ -269,7 +269,7 @@
         modal.show();
         
         // Se streaming não está ativo, tentar iniciar
-        if (!data.access_granted || !data.stream_url) {
+        if (!data.has_access || !data.stream_url) {
           updateStreamStatus("🚀 Iniciando câmera...");
           
           try {
@@ -296,7 +296,7 @@
         }
         
         // Configurar streaming se disponível
-        if (data.access_granted && data.stream_url) {
+        if (data.has_access && data.stream_url) {
           const videoElement = document.getElementById("cameraVideo");
           const correctStreamUrl = "/streaming/camera/stream.m3u8"; // URL correta
           
