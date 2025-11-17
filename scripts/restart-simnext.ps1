@@ -3,7 +3,7 @@ $simNextPath = "C:\Program Files\Intelbras\SIMNext\SimNext.exe"
 $ffmpegPath  = "C:\Program Files\Intelbras\SIMNext\broadcaster\ffmpeg-simnext.exe"
 $logPath     = "C:\Scripts\simnext-log.txt"
 
-$defaultArgs = '-rtsp_transport udp -thread_queue_size 4096 -i "rtsp://admin:CoraRosa@192.168.3.62:554/cam/realmonitor?channel=1&subtype=0" -f lavfi -i anullsrc=channel_layout=mono:sample_rate=8000 -vcodec h264 -tune zerolatency -g 20 -pix_fmt + -c:a aac -strict experimental -f flv -vf scale=640:360,setsar=1:1 "rtmp://a.rtmp.youtube.com/live2/yx67-vfxc-q2vb-4rkb-402d"'
+$defaultArgs = '-rtsp_transport udp -thread_queue_size 4096 -i "rtsp://admin:CoraRosa@192.168.69.20:554/cam/realmonitor?channel=1&subtype=0" -f lavfi -i anullsrc=channel_layout=mono:sample_rate=8000 -vcodec h264 -tune zerolatency -g 20 -pix_fmt + -c:a aac -strict experimental -f flv -vf scale=640:360,setsar=1:1 "rtmp://a.rtmp.youtube.com/live2/yx67-vfxc-q2vb-4rkb-402d"'
 
 # ==================== FUNÇÕES ====================
 function Write-Log {

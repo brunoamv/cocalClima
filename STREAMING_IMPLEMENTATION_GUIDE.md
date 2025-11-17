@@ -82,7 +82,7 @@ python manage.py stop_camera_streaming --force
 ### Variáveis de Ambiente
 ```bash
 # Câmera RTSP
-CAMERA_RTSP_URL=rtsp://admin:password@192.168.3.62:554/cam/realmonitor?channel=1&subtype=0
+CAMERA_RTSP_URL=rtsp://admin:password@192.168.69.20:554/cam/realmonitor?channel=1&subtype=0
 
 # MercadoPago (já configurado)
 MERCADO_PAGO_ACCESS_TOKEN=your_token

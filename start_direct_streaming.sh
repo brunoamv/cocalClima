@@ -2,7 +2,7 @@
 # Script simples para iniciar streaming RTSP para HLS
 
 # Configurações
-RTSP_URL="rtsp://admin:CoraRosa@192.168.3.62:554/cam/realmonitor?channel=1&subtype=0"
+RTSP_URL="rtsp://admin:CoraRosa@192.168.69.20:554/cam/realmonitor?channel=1&subtype=0"
 OUTPUT_DIR="/home/bruno/cocalClima/camera_stream"
 PLAYLIST_FILE="$OUTPUT_DIR/stream.m3u8"
 

@@ -20,8 +20,8 @@ class CameraStreamingService:
     
     def __init__(self):
         self.rtsp_url = os.environ.get(
-            'CAMERA_RTSP_URL', 
-            'rtsp://admin:CoraRosa@192.168.3.62:554/cam/realmonitor?channel=1&subtype=0'
+            'CAMERA_RTSP_URL',
+            'rtsp://admin:CoraRosa@192.168.69.20:554/cam/realmonitor?channel=1&subtype=0'
         )
         self.stream_output_dir = Path('/app/camera_stream')
         self.stream_output_dir.mkdir(exist_ok=True)

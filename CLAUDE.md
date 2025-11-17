@@ -123,7 +123,7 @@ Root/ (para remoção imediata)
 - **Integração**: MercadoPago com callbacks redundantes SSL
 
 ### **4. Camera Integration**
-- **RTSP Input**: `rtsp://admin:CoraRosa@192.168.3.62:554/cam/realmonitor?channel=1&subtype=0`
+- **RTSP Input**: `rtsp://admin:CoraRosa@192.168.69.20:554/cam/realmonitor?channel=1&subtype=0`
 - **HLS Output**: Segmentos `.ts` + playlist `.m3u8`
 - **FFmpeg**: Configuração otimizada para streaming
 

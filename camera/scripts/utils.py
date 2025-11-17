@@ -7,7 +7,7 @@ def load_config():
     """Carrega configurações das variáveis de ambiente"""
     config = {
         # Câmera
-        'CAMERA_RTSP_URL': os.getenv('CAMERA_RTSP_URL', 'rtsp://admin:CoraRosa@192.168.3.62:554/cam/realmonitor?channel=1&subtype=0'),
+        'CAMERA_RTSP_URL': os.getenv('CAMERA_RTSP_URL', 'rtsp://admin:CoraRosa@192.168.69.20:554/cam/realmonitor?channel=1&subtype=0'),
         
         # YouTube
         'YOUTUBE_RTMP_URL': os.getenv('YOUTUBE_RTMP_URL', 'rtmp://a.rtmp.youtube.com/live2'),

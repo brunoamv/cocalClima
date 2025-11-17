@@ -21,20 +21,20 @@ class CameraHealthChecker:
     def _extract_ip_from_rtsp(self, rtsp_url):
         """Extrai IP da URL RTSP"""
         try:
-            # rtsp://admin:senha@192.168.3.62:554/...
+            # rtsp://admin:senha@192.168.69.20:554/...
             parts = rtsp_url.split('/')
-            auth_host = parts[2]  # admin:senha@192.168.3.62:554
-            
+            auth_host = parts[2]  # admin:senha@192.168.69.20:554
+
             if '@' in auth_host:
-                host_port = auth_host.split('@')[1]  # 192.168.3.62:554
+                host_port = auth_host.split('@')[1]  # 192.168.69.20:554
             else:
                 host_port = auth_host
-            
-            ip = host_port.split(':')[0]  # 192.168.3.62
+
+            ip = host_port.split(':')[0]  # 192.168.69.20
             return ip
         except Exception as e:
             self.logger.error(f"Erro ao extrair IP da URL RTSP: {e}")
-            return "192.168.3.62"  # Fallback
+            return "192.168.69.20"  # Fallback
 
     def ping_camera(self):
         """Testa conectividade com ping"""

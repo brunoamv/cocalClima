@@ -53,7 +53,7 @@ Edite o arquivo `.env` e configure as credenciais:
 
 ```env
 # Configurações da Câmera
-CAMERA_RTSP_URL=rtsp://admin:CoraRosa@192.168.3.62:554/cam/realmonitor?channel=1&subtype=0
+CAMERA_RTSP_URL=rtsp://admin:CoraRosa@192.168.69.20:554/cam/realmonitor?channel=1&subtype=0
 
 # YouTube Live
 YOUTUBE_STREAM_KEY=yx67-vfxc-q2vb-4rkb-402d
@@ -197,7 +197,7 @@ Acesse http://localhost:8001 para visualizar:
 {
   "camera": {
     "online": true,
-    "ip": "192.168.3.62",
+    "ip": "192.168.69.20",
     "info": {
       "resolution": "1920x1080",
       "fps": "25"
@@ -285,10 +285,10 @@ cat .env | grep -v "^#"
 #### Câmera não conecta
 ```bash
 # Testar ping para câmera
-ping 192.168.3.62
+ping 192.168.69.20
 
 # Testar RTSP manualmente
-ffprobe rtsp://admin:CoraRosa@192.168.3.62:554/cam/realmonitor?channel=1&subtype=0
+ffprobe rtsp://admin:CoraRosa@192.168.69.20:554/cam/realmonitor?channel=1&subtype=0
 
 # Verificar logs de health check
 docker exec camera_streamer tail -f /camera/logs/health_checker.log
